@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    
+   	<TextView 
+	    android:id="@+id/title"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+		android:textAppearance="?attr/textAppearanceTitleGrouped"
+		android:layout_marginBottom="14dip" />
+   	
+	<LinearLayout 
+	    android:id="@+id/frame"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:divider="@drawable/vertical_list_divider"
+	    android:showDividers="middle" />
+    
+</merge>

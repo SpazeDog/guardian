@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    
+    <style name="App.View.CardView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_marginBottom">?attr/contentSpaceBetweenGroups</item>
+        <item name="android:background">?attr/backgroundColorPrimary</item>
+        <item name="android:elevation">?attr/contentGroupElevation</item> 
+    </style>
+    
+    <style name="App.ActionBar.Panel">
+        <item name="android:layout_height">?attr/actionBarHeight</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:paddingTop">?attr/actionBarMenuMargin</item>
+        <item name="android:paddingBottom">?attr/actionBarMenuMargin</item>
+        <item name="android:background">?attr/appColorPrimary</item>
+        <item name="android:elevation">?attr/actionBarElevation</item>
+    </style>
+    
+</resources>

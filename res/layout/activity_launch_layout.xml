@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+	<RelativeLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:gravity="center_horizontal"
+	    android:background="?attr/backgroundColorSecondary">
+	    
+	    <com.spazedog.guardian.views.ExtendedFrameLayout
+	        android:id="@+id/drawer_content_frame"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:layout_marginLeft="?attr/layoutMarginLeft"
+	        android:layout_marginRight="?attr/layoutMarginRight"
+	        android:layout_marginTop="?attr/layoutMarginTop"
+	        android:layout_marginBottom="?attr/layoutMarginBottom"
+	        android:layout_below="@+id/actionbar"
+	        android:paddingTop="?attr/layoutPaddingVertical"
+	        android:paddingBottom="?attr/layoutPaddingVertical"
+	        android:paddingLeft="?attr/layoutPaddingHorizontal"
+	        android:paddingRight="?attr/layoutPaddingHorizontal"
+	        app:layout_dimens_maxWidth="?attr/layoutMaxWidth" />
+	    
+	    <include layout="@layout/toolbar_actionbar_embed"
+	        android:id="@+id/actionbar" />
+	    
+	</RelativeLayout>
+	
+    <FrameLayout
+        android:id="@+id/drawer_slider_frame"
+        android:layout_width="?attr/drawerWidth"
+        android:layout_height="match_parent"
+        android:layout_gravity="left"
+        android:paddingTop="?attr/drawerPaddingVertical"
+        android:paddingBottom="?attr/drawerPaddingVertical"
+        android:paddingLeft="?attr/drawerPaddingHorizontal"
+        android:paddingRight="?attr/drawerPaddingHorizontal"
+        android:fitsSystemWindows="true"
+        android:background="?attr/backgroundColorSecondary"
+        android:elevation="14dp" />
+    
+</android.support.v4.widget.DrawerLayout>

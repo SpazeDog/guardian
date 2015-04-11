@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbars="none">
+    
+    <LinearLayout 
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+        
+		<LinearLayout 
+		    style="?attr/cardViewStyle"
+		    android:orientation="vertical">
+		    
+		    <com.spazedog.guardian.views.GroupedLayout
+				style="?attr/groupedLayoutStyle">
+		        
+		        <com.spazedog.guardian.views.SpinnerWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_interval"
+			        app:title_text="Monitoring Interval"
+			        app:summary_text="How often to check processes"
+			        app:array_names="@array/interval_names"
+			        app:array_values="@array/interval_values" />
+		        
+		        <com.spazedog.guardian.views.SpinnerWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_engine"
+			        app:title_text="Monitoring Engine"
+			        app:summary_text="Use either a persistent background service or an alarm scheduled service"
+			        app:array_names="@array/service_engine_names"
+			        app:array_values="@array/service_engine_values" />
+		        
+		        <com.spazedog.guardian.views.CheckBoxWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_root"
+			        app:title_text="Enable Root"
+			        app:summary_text="Use root to kill processes that cannot be killed using standard API's" />
+		        
+		        <com.spazedog.guardian.views.CheckBoxWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_linux_proc"
+			        app:title_text="Enable Linux Monitoring"
+			        app:summary_text="Monitor both Android and Linux processes" />
+		        
+		    </com.spazedog.guardian.views.GroupedLayout>
+		    
+		</LinearLayout>
+		
+		<LinearLayout 
+		    style="?attr/cardViewStyle"
+		    android:orientation="vertical">
+		    
+		    <com.spazedog.guardian.views.GroupedLayout
+				style="?attr/groupedLayoutStyle">
+		        
+		        <com.spazedog.guardian.views.SpinnerWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_threshold_interactive"
+			        app:title_text="Interactive Threshold"
+			        app:summary_text="CPU alert threshold when the device is awake"
+			        app:array_names="@array/cpu_threshold_names"
+			        app:array_values="@array/cpu_threshold_values" />
+		        
+		        <com.spazedog.guardian.views.SpinnerWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_threshold_noninteractive"
+			        app:title_text="Non-Interactive Threshold"
+			        app:summary_text="CPU alert threshold when the device is asleep"
+			        app:array_names="@array/cpu_threshold_names"
+			        app:array_values="@array/cpu_threshold_values" />
+		        
+		    </com.spazedog.guardian.views.GroupedLayout>
+		    
+		</LinearLayout>
+		
+		<LinearLayout 
+		    style="?attr/cardViewStyle"
+		    android:orientation="vertical">
+		    
+		    <com.spazedog.guardian.views.GroupedLayout
+				style="?attr/groupedLayoutStyle">
+		        
+		        <com.spazedog.guardian.views.SpinnerWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_action_interactive"
+			        app:title_text="Interactive Action"
+			        app:summary_text="Action to take when the device is awake"
+			        app:array_names="@array/service_action_names"
+			        app:array_values="@array/service_action_values" />
+		        
+		        <com.spazedog.guardian.views.SpinnerWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/config_action_noninteractive"
+			        app:title_text="Non-Interactive Action"
+			        app:summary_text="Action to take when the device is asleep"
+			        app:array_names="@array/service_action_names"
+			        app:array_values="@array/service_action_values" />
+		        
+		    </com.spazedog.guardian.views.GroupedLayout>
+		    
+		</LinearLayout>
+        
+    </LinearLayout>
+    
+</ScrollView>

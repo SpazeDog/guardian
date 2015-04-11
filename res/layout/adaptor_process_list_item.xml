@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical" >
+    
+    <com.spazedog.guardian.views.CircularImageView
+        android:id="@+id/process_item_img"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:gravity="center_vertical|center_horizontal"
+        app:civ_border="true"
+        app:civ_border_color="?attr/accentColorSecondary"
+        app:civ_border_width="1dp"
+        app:civ_shadow="false" />
+    
+	<RelativeLayout
+	    android:id="@+id/process_item_clickable"
+	    android:layout_width="0dp"
+	    android:layout_height="wrap_content"
+	    android:layout_weight="1"
+		android:layout_marginLeft="?attr/contentPaddingHorizontal"
+    	android:focusable="true"
+    	android:clickable="true"
+    	android:background="?attr/itemSelectableBackground"
+    	android:gravity="center_vertical"
+    	android:paddingTop="?attr/contentDividerPadding">
+    	
+	   	<TextView
+	        android:id="@+id/process_item_label"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_toLeftOf="@+id/process_item_usage"
+	        android:singleLine="true"
+	        android:textAppearance="?attr/textAppearanceTitle" />
+	   	
+	   	<TextView
+	        android:id="@+id/process_item_name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:singleLine="true"
+	        android:textAppearance="?attr/textAppearanceSummary"
+	        android:layout_below="@id/process_item_label" />
+	   	
+	   	<TextView
+	        android:id="@+id/process_item_importance"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textAppearance="?attr/textAppearance"
+	        android:paddingTop="10dp"
+	        android:layout_below="@id/process_item_name" />
+	   	
+	    <TextView
+	        android:id="@+id/process_item_usage"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textAppearance="?attr/textAppearance"
+	        android:layout_alignParentRight="true"
+	        android:paddingLeft="10dp" />
+	    
+		<View
+		  android:id="@+id/process_divider"
+		  android:layout_width="match_parent"
+		  android:layout_height="1dp"
+		  android:background="?attr/listDividerColor"
+		  android:layout_below="@id/process_item_importance"
+		  android:layout_marginTop="?attr/contentDividerPadding" />
+	    
+	</RelativeLayout>
+
+</LinearLayout>

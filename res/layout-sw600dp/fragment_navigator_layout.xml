@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbars="none">
+    
+    <!-- This extra layout is needed in order for shadows to work in Lollipop -->
+    <LinearLayout 
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+    
+		<LinearLayout 
+		    style="?attr/cardViewStyle"
+		    android:orientation="vertical">
+		    
+		    <com.spazedog.guardian.views.GroupedLayout
+				style="?attr/groupedLayoutStyle">
+		        
+		        <com.spazedog.guardian.views.IndicatorWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/tab_process_list"
+			    	android:focusable="true"
+			    	android:clickable="true"
+			    	android:background="?attr/itemSelectableBackground"
+			    	android:tag="FragmentProcessList"
+			        app:title_text="Process Overview" />
+		        
+		        <com.spazedog.guardian.views.IndicatorWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/tab_process_alerts"
+			    	android:focusable="true"
+			    	android:clickable="true"
+			    	android:background="?attr/itemSelectableBackground"
+			    	android:tag="FragmentAlertList"
+			        app:title_text="Recent Alerts" />
+		        
+		        <com.spazedog.guardian.views.IndicatorWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/tab_configuration"
+			    	android:focusable="true"
+			    	android:clickable="true"
+			    	android:background="?attr/itemSelectableBackground"
+			    	android:tag="FragmentConfiguration"
+			        app:title_text="Configuration" />
+		        
+		        <com.spazedog.guardian.views.SwitchWidget
+		            style="?attr/widgetViewStyle"
+		            android:id="@+id/service_switch"
+			        app:title_text="Monitoring Service"
+			        app:summary_text="Turn monitoring on/off" />
+		        
+		    </com.spazedog.guardian.views.GroupedLayout>
+		    
+		</LinearLayout>
+		
+	</LinearLayout>
+    
+</ScrollView>

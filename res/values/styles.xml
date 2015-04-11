@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    
+    <style name="App.ActionBar" />
+    
+    <style name="App.ActionBar.Panel">
+        <item name="android:layout_height">?attr/actionBarHeight</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:background">?attr/actionBarCombatBackground</item>
+    </style>
+
+    <style name="App.TextAppearance" parent="@style/TextAppearance.AppCompat">
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:textSize">?attr/textSizeNormal</item>
+    </style>
+    
+    <style name="App.TextAppearance.Inverted">
+        <item name="android:textColor">?attr/textColorPrimaryInverted</item>
+    </style>
+    
+    <style name="App.TextAppearance.Summary">
+        <item name="android:textColor">?attr/textColorSecondary</item>
+        <item name="android:textSize">?attr/textSizeSummary</item>
+    </style>
+    
+    <style name="App.TextAppearance.Summary.Inverted">
+        <item name="android:textColor">?attr/textColorSecondaryInverted</item>
+    </style>
+    
+    <style name="App.TextAppearance.Title">
+        <item name="android:textSize">?attr/textSizeTitle</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    
+    <style name="App.TextAppearance.Title.Inverted">
+        <item name="android:textColor">?attr/textColorPrimaryInverted</item>
+    </style>
+
+    <style name="App.TextAppearance.Title.ActionBar" parent="@style/App.TextAppearance.Inverted">
+        <item name="android:textSize">?attr/actionBarTitleSize</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    
+    <style name="App.TextAppearance.Title.Grouped">
+        <item name="android:textColor">?attr/accentColorPrimary</item>
+    </style>
+    
+    <style name="App.View" />
+
+    <!-- 
+    	This style does not work on actual CardView's. 
+    	The real CardView from the v7 combat library is some of the worst programming work in the history of programming, 
+    	so instead use a normal layout of some sort along with v21 shadow support and a combat 9.png image for versions below this. 
+    	
+    	If padding is needed, add it as margin on a child element. The 9.png combat image manipulates with the padding 
+    	in order to create the shadow effect. 
+     -->
+    <style name="App.View.CardView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_marginBottom">?attr/contentSpaceBetweenGroups</item>
+        <item name="android:background">?attr/cardViewCombatBackground</item>
+    </style>
+    
+    <style name="App.View.GroupedLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">?attr/contentPaddingVertical</item>
+        <item name="android:paddingBottom">?attr/contentPaddingVertical</item>
+        <item name="android:paddingLeft">?attr/contentPaddingHorizontal</item>
+        <item name="android:paddingRight">?attr/contentPaddingHorizontal</item>
+    </style>
+    
+    <style name="App.View.WidgetView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">?attr/contentDividerPadding</item>
+        <item name="android:paddingBottom">?attr/contentDividerPadding</item>
+    </style>
+    
+</resources>

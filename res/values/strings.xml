@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="process_importance_background">Background</string>
+    <string name="process_importance_foreground">Foreground</string>
+    <string name="process_importance_perceptible">Perceptible</string>
+    <string name="process_importance_visible">Visible</string>
+    <string name="process_importance_service">Service</string>
+    <string name="process_importance_idle">Idle</string>
+    <string name="process_importance_dead">Dead</string>
+    <string name="process_importance_linux">Linux</string>
+    
+</resources>

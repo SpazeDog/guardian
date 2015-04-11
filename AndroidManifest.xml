@@ -1,0 +1,48 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.spazedog.guardian"
+    android:versionCode="1"
+    android:versionName="0.1.0.1" >
+
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="21" />
+    
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Guardian"
+        android:theme="@style/App.Theme.Material.Light"
+        android:name="com.spazedog.guardian.application.Controller">
+        
+        <service android:name="com.spazedog.guardian.backend.MonitorService"></service>
+        
+        <receiver android:name="com.spazedog.guardian.backend.MonitorReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+			</intent-filter>
+			
+			<intent-filter>
+				<action android:name="guardian.intent.action.SCHEDULE_SERVICE" />
+			</intent-filter>
+        </receiver>
+        
+        <activity
+            android:name="com.spazedog.guardian.ActivityLaunch"
+            android:label="Guardian" >
+
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+            
+        </activity>
+        
+    </application>
+
+</manifest>

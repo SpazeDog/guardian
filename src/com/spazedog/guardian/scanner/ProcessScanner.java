@@ -1,0 +1,111 @@
+/*
+ * This file is part of the Guardian Project: https://github.com/spazedog/guardian
+ *  
+ * Copyright (c) 2015 Daniel Bergløv
+ *
+ * Guardian is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * Guardian is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with Guardian. If not, see <http://www.gnu.org/licenses/>
+ */
+
+package com.spazedog.guardian.scanner;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
+import android.content.Context;
+
+import com.spazedog.guardian.scanner.IProcess.IProcessList;
+
+public class ProcessScanner {
+	
+	public static enum ScanMode { 
+		COLLECT_CPU, 				// Only get the CPU stat content
+		COLLECT_PROCESSES, 			// Get the stat content for all currently running processes
+		COLLECT_APPLICATIONS, 		// Only get the stat content for currently running Android processes
+		EVALUATE_COLLECTION 		// Only get the stat content for the defined processes
+	}
+	
+	/*
+	 * ============================================================
+	 * JNI ProcessScanner Library
+	 */
+	
+		static {
+			System.loadLibrary("processScanner");
+		}
+		/*
+		 * pidList:
+		 * 					pidList[i] = Process ID
+		 * 					pidList[i+1] = Process Type (Importance or 0 for Linux)
+		 * 					...
+		 */
+		private static native String[][] getProcessList(int[] pidList, boolean collectFromList);
+	
+	/*
+	 * ============================================================
+	 */
+		
+	public static IProcessList execute(Context context, ScanMode mode, IProcessList processList) {
+		List<Integer> tempList = new ArrayList<Integer>();
+		int[] pidList = null;
+		
+		if (mode == ScanMode.EVALUATE_COLLECTION && processList != null) {
+			for (IProcessEntity entity : processList) {
+				tempList.add(entity.getProcessId());
+				tempList.add(entity.getImportance());
+			}
+			
+		} else if (mode != ScanMode.EVALUATE_COLLECTION && mode != ScanMode.COLLECT_CPU) {
+			ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+			List<RunningAppProcessInfo> runningProcesses = manager.getRunningAppProcesses();
+			
+			if (runningProcesses != null) {
+				for (RunningAppProcessInfo androidProcess : runningProcesses) {
+					tempList.add(androidProcess.pid);
+					tempList.add(androidProcess.importance);
+				}
+			}
+		}
+		
+		pidList = new int[tempList.size()];
+		for (int i=0; i < pidList.length; i++) {
+			pidList[i] = tempList.get(i);
+		}
+		
+		String[][] statCollection = getProcessList(pidList, mode != ScanMode.COLLECT_PROCESSES);
+		
+		if (statCollection.length > 0) {
+			ProcessSystem systemProcess = new ProcessSystem();
+			systemProcess.updateStat(statCollection[0], processList);
+			
+			for (String[] stats : statCollection) {
+				if (stats.length >= 8) {
+					int type = Integer.valueOf(stats[0]);
+					int pid = Integer.valueOf(stats[1]);
+					
+					IProcessEntity oldEntity = processList != null ? processList.findEntity(pid) : null;
+					IProcessEntity newEntity = type > 0 ? new ProcessEntityAndroid() : new ProcessEntityLinux();
+					
+					newEntity.updateStat(stats, oldEntity);
+					systemProcess.addEntity(newEntity);
+				}
+			}
+			
+			return systemProcess;
+		}
+		
+		return null;
+	}
+}

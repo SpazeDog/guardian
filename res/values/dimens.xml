@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <!-- ====================================================
+    	 	BASIC APP CONDITIONS
+    -->
+    
+    <dimen name="textSizeHeader">14sp</dimen>
+    <dimen name="textSizeTitle">16sp</dimen>
+    <dimen name="textSizeNormal">16sp</dimen>
+    <dimen name="textSizeSummary">14sp</dimen>
+    
+    <dimen name="layoutMaxWidth">0dp</dimen> <!-- 0 for no max width -->
+    <dimen name="layoutPaddingVertical">0dp</dimen>
+    <dimen name="layoutPaddingHorizontal">0dp</dimen>
+    <dimen name="layoutMarginTop">-8dp</dimen>
+    <dimen name="layoutMarginBottom">0dp</dimen>
+    <dimen name="layoutMarginLeft">0dp</dimen>
+    <dimen name="layoutMarginRight">0dp</dimen>
+
+    <dimen name="drawerWidth">300dp</dimen>
+    <dimen name="drawerPaddingVertical">0dp</dimen>
+    <dimen name="drawerPaddingHorizontal">0dp</dimen>
+    <dimen name="drawerSpaceBetweenLayout">0dp</dimen> <!-- Space between drawer frame and content frame (Only on tablets where drawer is static) -->
+    
+    <dimen name="contentPaddingVertical">7dp</dimen>
+    <dimen name="contentPaddingHorizontal">7dp</dimen>
+    <dimen name="contentDividerPadding">7dp</dimen> <!-- Distance between content and it's dividers -->
+    <dimen name="contentSeparaterSpace">14dp</dimen> <!-- Distance between two blocks of content -->
+    <dimen name="contentSpaceBetweenGroups">0dp</dimen> <!-- Distance between two content groups (CardViews) -->
+    <dimen name="contentSpaceBetweenGroupsCombat">7dp</dimen> <!-- To be used where contentSpaceBetweenGroups is smaller do to combat drawables with built-in 9-patch padding -->
+    <dimen name="contentGroupElevation">7dp</dimen>
+    
+    
+    <!-- ====================================================
+    	 	ACTION BAR CONDITIONS
+    -->
+    
+    <!-- 
+    	actionBarHeight+8dp for API below 21 to account for
+    	the padding in the combat 9-patch actionbar shadow image
+     -->
+    <dimen name="actionBarHeight">56dp</dimen>
+    
+    <dimen name="actionBarMaxWidth">0dp</dimen> <!-- 0 for no max width -->
+    <dimen name="actionBarElevation">7dp</dimen>
+    <dimen name="actionBarMenuMargin">0dp</dimen>
+    <dimen name="actionBarMenuPadding">12dp</dimen>
+    <dimen name="actionBarTitleSize">16sp</dimen>
+    <dimen name="actionBarTitlePadding">0dp</dimen>
+    
+</resources>

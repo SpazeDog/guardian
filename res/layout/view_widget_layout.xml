@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <LinearLayout 
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+    
+		<TextView 
+            android:id="@+id/title"            
+	        android:layout_height="wrap_content"
+	        android:layout_width="0dp"
+	        android:layout_weight="1"
+            android:singleLine="true"
+            android:paddingRight="7dp"
+			android:textAppearance="?attr/textAppearanceTitle" />
+	    
+	    <FrameLayout 
+	        android:id="@+id/widget"
+	        android:layout_height="wrap_content"
+	        android:layout_width="wrap_content" />
+    
+    </LinearLayout>
+    
+    <TextView 
+        android:id="@+id/summary"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:textAppearance="?attr/textAppearanceSummary" />
+    
+</merge>

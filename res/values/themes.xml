@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <style name="App" />
+    
+    <style name="App.Theme" parent="Theme.AppCompat.Light.NoActionBar">
+        
+	    <!-- ====================================================
+	    	 	BASIC APP ATTRIBUTES
+	    -->
+	    
+	    <item name="appColorPrimary">@color/appColorPrimary</item>
+	    <item name="appColorSecondary">@color/appColorSecondary</item>
+	    
+	    <item name="accentColorPrimary">@color/accentColorPrimary</item>
+	    <item name="accentColorSecondary">@color/accentColorSecondary</item>
+	    <item name="accentColorControlHighlight">@color/accentColorControlHighlight</item>
+	    <item name="accentColorControlActivated">@color/accentColorControlActivated</item>
+	    
+	    <item name="backgroundColorPrimary">@color/backgroundColorPrimary</item>
+	    <item name="backgroundColorSecondary">@color/backgroundColorSecondary</item>
+	    
+	    <item name="textColorPrimary">@color/text_color_primary_selector</item>
+	    <item name="textColorPrimaryEnabled">@color/textColorPrimaryEnabled</item>
+	    <item name="textColorPrimaryDisabled">@color/textColorPrimaryDisabled</item>
+	    
+	    <item name="textColorSecondary">@color/text_color_secondary_selector</item>
+	    <item name="textColorSecondaryEnabled">@color/textColorSecondaryEnabled</item>
+	    <item name="textColorSecondaryDisabled">@color/textColorSecondaryDisabled</item>
+	    
+	    <item name="textColorPrimaryInverted">@color/text_color_primary_inverted_selector</item>
+	    <item name="textColorPrimaryInvertedEnabled">@color/textColorPrimaryInvertedEnabled</item>
+	    <item name="textColorPrimaryInvertedDisabled">@color/textColorPrimaryInvertedDisabled</item>
+	    
+	    <item name="textColorSecondaryInverted">@color/text_color_secondary_inverted_selector</item>
+	    <item name="textColorSecondaryInvertedEnabled">@color/textColorSecondaryInvertedEnabled</item>
+	    <item name="textColorSecondaryInvertedDisabled">@color/textColorSecondaryInvertedDisabled</item>
+	    
+	    <item name="textSizeHeader">@dimen/textSizeHeader</item>
+	    <item name="textSizeTitle">@dimen/textSizeTitle</item>
+	    <item name="textSizeNormal">@dimen/textSizeNormal</item>
+	    <item name="textSizeSummary">@dimen/textSizeSummary</item>
+	    
+	    <item name="layoutMaxWidth">@dimen/layoutMaxWidth</item>
+	    <item name="layoutPaddingVertical">@dimen/layoutPaddingVertical</item>
+	    <item name="layoutPaddingHorizontal">@dimen/layoutPaddingHorizontal</item>
+	    <item name="layoutMarginTop">@dimen/layoutMarginTop</item>
+	    <item name="layoutMarginBottom">@dimen/layoutMarginBottom</item>
+	    <item name="layoutMarginLeft">@dimen/layoutMarginLeft</item>
+	    <item name="layoutMarginRight">@dimen/layoutMarginRight</item>
+	
+	    <item name="drawerWidth">@dimen/drawerWidth</item>
+	    <item name="drawerPaddingVertical">@dimen/drawerPaddingVertical</item>
+	    <item name="drawerPaddingHorizontal">@dimen/drawerPaddingHorizontal</item>
+	    <item name="drawerSpaceBetweenLayout">@dimen/drawerSpaceBetweenLayout</item>
+	    
+	    <item name="contentPaddingVertical">@dimen/contentPaddingVertical</item>
+	    <item name="contentPaddingHorizontal">@dimen/contentPaddingHorizontal</item>
+	    <item name="contentDividerPadding">@dimen/contentDividerPadding</item>
+	    <item name="contentSeparaterSpace">@dimen/contentSeparaterSpace</item>
+	    <item name="contentSpaceBetweenGroups">@dimen/contentSpaceBetweenGroups</item>
+	    <item name="contentSpaceBetweenGroupsCombat">@dimen/contentSpaceBetweenGroupsCombat</item>
+	    <item name="contentGroupElevation">@dimen/contentGroupElevation</item>
+	    
+	    <item name="textAppearance">@style/App.TextAppearance</item>
+	    <item name="textAppearanceInverted">@style/App.TextAppearance.Inverted</item>
+	    <item name="textAppearanceSummary">@style/App.TextAppearance.Summary</item>
+	    <item name="textAppearanceSummaryInverted">@style/App.TextAppearance.Summary.Inverted</item>
+	    <item name="textAppearanceTitle">@style/App.TextAppearance.Title</item>
+	    <item name="textAppearanceTitleInverted">@style/App.TextAppearance.Title.Inverted</item>
+	    <item name="textAppearanceActionBarTitle">@style/App.TextAppearance.Title.ActionBar</item>
+	    <item name="textAppearanceTitleGrouped">@style/App.TextAppearance.Title.Grouped</item>
+	    
+	    <item name="itemSelectableBackground">@drawable/item_selectable_background</item>
+	    <item name="listDividerColor">@color/listDividerColor</item>
+	    
+	    
+	    <!-- ====================================================
+	    	 	ACTION BAR CONDITIONS
+	    -->
+	    
+	    <item name="actionBarHeight">@dimen/actionBarHeight</item>
+	    <item name="actionBarMaxWidth">@dimen/actionBarMaxWidth</item> 
+	    <item name="actionBarElevation">@dimen/actionBarElevation</item>
+	    <item name="actionBarMenuMargin">@dimen/actionBarMenuMargin</item>
+	    <item name="actionBarMenuPadding">@dimen/actionBarMenuPadding</item>
+	    <item name="actionBarTitleSize">@dimen/actionBarTitleSize</item>
+	    <item name="actionBarTitlePadding">@dimen/actionBarTitlePadding</item>
+	    
+	    
+	    <!-- ====================================================
+	    	 	THEME STYLE REFERENCES
+	    -->
+	    
+	    <item name="actionBarStyleTitle">@style/App.ActionBar.Panel</item>
+	    <item name="actionBarStyle">@style/App.ActionBar.Panel</item>
+	    <item name="cardViewStyle">@style/App.View.CardView</item>
+	    <item name="groupedLayoutStyle">@style/App.View.GroupedLayout</item>
+	    <item name="widgetViewStyle">@style/App.View.WidgetView</item>
+	    
+	    
+	    <!-- ====================================================
+	    	 	COMBAT DRAWABLES
+	    -->
+	    
+	    <item name="actionBarCombatBackground">@drawable/actionbar_combat_shadow</item>
+	    <item name="cardViewCombatBackground">@drawable/cardview_shadow</item>
+	    
+	    <item name="actionMenuIconKill">@drawable/menu_kill_item_selector</item>
+	    <item name="actionMenuIconDelete">@drawable/menu_delete_item_selector</item>
+	    <item name="actionMenuIconPlayPause">@drawable/menu_playpause_item_selector</item>
+	    <item name="actionMenuIconNavigation">@drawable/menu_navigation_item_selector</item>
+	    
+	    
+	    <!-- ====================================================
+	    	 	LAYOUT FILES INFLATED IN JAVA FILES
+	    -->
+	    
+	    <item name="layout_activityLaunchLayout">@layout/activity_launch_layout</item>
+	    <item name="layout_activityLaunchMenuNavigation">@layout/activity_launch_menu_navigation</item>
+	    <item name="layout_fragmentConfigurationLayout">@layout/fragment_configuration_layout</item>
+	    <item name="layout_fragmentNavigatorLayout">@layout/fragment_navigator_layout</item>
+	    <item name="layout_fragmentProcessDetailsLayout">@layout/fragment_process_details_layout</item>
+	    <item name="layout_fragmentProcessDetailsMenu">@layout/fragment_process_details_menu</item>
+	    <item name="layout_fragmentProcessListLayout">@layout/fragment_process_list_layout</item>
+	    <item name="layout_fragmentProcessListMenu">@layout/fragment_process_list_menu</item>
+	    <item name="layout_adapterProcessListItem">@layout/adaptor_process_list_item</item>
+	    <item name="layout_fragmentAlertListLayout">@layout/fragment_alert_list_layout</item>
+	    <item name="layout_fragmentAlertListMenu">@layout/fragment_alert_list_menu</item>
+	    <item name="layout_adapterAlertListItem">@layout/adaptor_alert_list_item</item>
+	    <item name="layout_viewGroupedLayout">@layout/view_grouped_layout</item>
+	    <item name="layout_viewWidgetLayout">@layout/view_widget_layout</item>
+	    <item name="layout_viewIndicatorLayout">@layout/view_indicator_layout</item>
+	    <item name="layout_viewIndicatorWidget">@layout/view_indicator_widget</item>
+	    <item name="layout_viewCheckboxWidget">@layout/view_checkbox_widget</item>
+	    <item name="layout_viewSwitchWidget">@layout/view_switch_widget</item>
+	    <item name="layout_viewTextboxWidget">@layout/view_textbox_widget</item>
+	    <item name="layout_viewSpinnerWidget">@layout/view_spinner_widget</item>
+	    <item name="layout_viewSpinnerWidgetItem">@layout/view_spinner_widget_item</item>
+	    
+    </style>
+    
+    <style name="App.Theme.Material">
+        <!-- 
+        	Changes to Android and Support Library attributes
+         -->
+		<item name="colorPrimary">?attr/appColorPrimary</item>
+        <item name="colorPrimaryDark">?attr/appColorPrimary</item>
+        <item name="android:textColorPrimary">?attr/textColorPrimary</item>
+        <item name="android:windowBackground">?attr/backgroundColorSecondary</item>
+        <item name="colorControlHighlight">?attr/accentColorControlHighlight</item>
+        <item name="colorControlActivated">?attr/accentColorControlActivated</item>
+        <item name="colorAccent">@color/accentColorPrimary</item>
+    </style>
+    
+    <style name="App.Theme.Material.Light">
+        <!-- 
+        	This has to be placed in this section. 
+        	It will ensure that this attr is replaced in values-v21/themes.xml where we do not need a custom
+        	selector in order to get a custom selection color. 
+         -->
+        <item name="android:selectableItemBackground">@drawable/item_selectable_background</item>
+    </style>
+    
+</resources>

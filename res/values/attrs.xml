@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    
+    <!-- ***********************************************************
+    
+    	    Each attrubute outside any styleable declaration 
+    	    also has a defined item in styles.xml
+    	    
+    	    This is due to minimal features in Android. 
+    	    Regular items cannot be changed inside a Style tag,
+    	    which means that they cannot be changed in different
+    	    themes. 
+    	    
+    	    Style tags defined in different qualifiers does 
+    	    not get merged when multiple qualifiers 
+    	    matches. This means that one single change in 
+    	    a specific attribute within a qualifier Style, 
+    	    needs to maually inherit each changes in all 
+    	    Styles with that name in each qualifier folder. 
+    	    
+    	    By defining an item, like say a color, and an 
+    	    attribute with the same name. We can use the 
+    	    attributes in the layout files, while being 
+    	    able to change the attribut values based on theme, 
+    	    and at the same time change each item value based 
+    	    on qualifier, with minimal work and copy/paste.
+    	    
+    *********************************************************** -->
+    
+    
+    
+    <!-- ====================================================
+    	 	BASIC APP ATTRIBUTES
+    -->
+    
+    <attr name="appColorPrimary" format="reference|color" />
+    <attr name="appColorSecondary" format="reference|color" />
+    
+    <attr name="accentColorPrimary" format="reference|color" />
+    <attr name="accentColorSecondary" format="reference|color" />
+    <attr name="accentColorControlHighlight" format="reference|color" />
+    <attr name="accentColorControlActivated" format="reference|color" />
+    
+    <attr name="backgroundColorPrimary" format="reference|color" />
+    <attr name="backgroundColorSecondary" format="reference|color" />
+    
+    <attr name="textColorPrimary" format="reference|color" />
+    <attr name="textColorPrimaryEnabled" format="reference|color" />
+    <attr name="textColorPrimaryDisabled" format="reference|color" />
+    
+    <attr name="textColorSecondary" format="reference|color" />
+    <attr name="textColorSecondaryEnabled" format="reference|color" />
+    <attr name="textColorSecondaryDisabled" format="reference|color" />
+    
+    <attr name="textColorPrimaryInverted" format="reference|color" />
+    <attr name="textColorPrimaryInvertedEnabled" format="reference|color" />
+    <attr name="textColorPrimaryInvertedDisabled" format="reference|color" />
+    
+    <attr name="textColorSecondaryInverted" format="reference|color" />
+    <attr name="textColorSecondaryInvertedEnabled" format="reference|color" />
+    <attr name="textColorSecondaryInvertedDisabled" format="reference|color" />
+    
+    <attr name="textSizeHeader" format="reference|dimension" />
+    <attr name="textSizeTitle" format="reference|dimension" />
+    <attr name="textSizeNormal" format="reference|dimension" />
+    <attr name="textSizeSummary" format="reference|dimension" />
+    
+    <attr name="layoutMaxWidth" format="reference|dimension" />
+    <attr name="layoutPaddingVertical" format="reference|dimension" />
+    <attr name="layoutPaddingHorizontal" format="reference|dimension" />
+    <attr name="layoutMarginTop" format="reference|dimension" />
+    <attr name="layoutMarginBottom" format="reference|dimension" />
+    <attr name="layoutMarginLeft" format="reference|dimension" />
+    <attr name="layoutMarginRight" format="reference|dimension" />
+
+    <attr name="drawerWidth" format="reference|dimension" />
+    <attr name="drawerPaddingVertical" format="reference|dimension" />
+    <attr name="drawerPaddingHorizontal" format="reference|dimension" />
+    <attr name="drawerSpaceBetweenLayout" format="reference|dimension" />
+    
+    <attr name="contentPaddingVertical" format="reference|dimension" />
+    <attr name="contentPaddingHorizontal" format="reference|dimension" />
+    <attr name="contentDividerPadding" format="reference|dimension" />
+    <attr name="contentSeparaterSpace" format="reference|dimension" />
+    <attr name="contentSpaceBetweenGroups" format="reference|dimension" />
+    <attr name="contentSpaceBetweenGroupsCombat" format="reference|dimension" />
+    <attr name="contentGroupElevation" format="reference|dimension" />
+    
+    <attr name="textAppearance" format="reference" />
+    <attr name="textAppearanceInverted" format="reference" />
+    <attr name="textAppearanceSummary" format="reference" />
+    <attr name="textAppearanceSummaryInverted" format="reference" />
+    <attr name="textAppearanceTitle" format="reference" />
+    <attr name="textAppearanceTitleInverted" format="reference" />
+    <attr name="textAppearanceActionBarTitle" format="reference" />
+    <attr name="textAppearanceTitleGrouped" format="reference" />
+    
+    <attr name="itemSelectableBackground" format="reference|color" />
+    <attr name="listDividerColor" format="reference|color" />
+    
+    <!-- ====================================================
+    	 	ACTION BAR ATTRIBUTES
+    -->
+    
+    <attr name="actionBarHeight" format="reference|dimension" />
+    <attr name="actionBarMaxWidth" format="reference|dimension" />
+    <attr name="actionBarElevation" format="reference|dimension" />
+    <attr name="actionBarMenuMargin" format="reference|dimension" />
+    <attr name="actionBarMenuPadding" format="reference|dimension" />
+    <attr name="actionBarTitleSize" format="reference|dimension" />
+    <attr name="actionBarTitlePadding" format="reference|dimension" />
+    
+    
+    <!-- ====================================================
+    	 	THEME STYLE REFERENCES
+    -->
+    
+    <!-- <attr name="actionBarStyle" format="reference" /> Exists -->
+    <attr name="actionBarStyleTitle" format="reference" />
+    <attr name="cardViewStyle" format="reference" />
+    <attr name="groupedLayoutStyle" format="reference" />
+    <attr name="widgetViewStyle" format="reference" />
+    
+    
+    <!-- ====================================================
+    	 	COMBAT DRAWABLES
+    -->
+    
+    <attr name="actionBarCombatBackground" format="reference" />
+    <attr name="cardViewCombatBackground" format="reference" />
+    
+    <attr name="actionMenuIconKill" format="reference" />
+    <attr name="actionMenuIconDelete" format="reference" />
+    <attr name="actionMenuIconPlayPause" format="reference" />
+    <attr name="actionMenuIconNavigation" format="reference" />
+    
+    
+    <!-- ====================================================
+    	 	LAYOUT FILES INFLATED IN JAVA FILES
+    -->
+    
+    <attr name="layout_activityLaunchLayout" format="reference" />
+    <attr name="layout_activityLaunchMenuNavigation" format="reference" />
+    <attr name="layout_fragmentConfigurationLayout" format="reference" />
+    <attr name="layout_fragmentNavigatorLayout" format="reference" />
+    <attr name="layout_fragmentProcessDetailsLayout" format="reference" />
+    <attr name="layout_fragmentProcessDetailsMenu" format="reference" />
+    <attr name="layout_fragmentProcessListLayout" format="reference" />
+    <attr name="layout_fragmentProcessListMenu" format="reference" />
+    <attr name="layout_adapterProcessListItem" format="reference" />
+    <attr name="layout_fragmentAlertListLayout" format="reference" />
+    <attr name="layout_fragmentAlertListMenu" format="reference" />
+    <attr name="layout_adapterAlertListItem" format="reference" />
+    <attr name="layout_viewGroupedLayout" format="reference" />
+    <attr name="layout_viewWidgetLayout" format="reference" />
+    <attr name="layout_viewIndicatorLayout" format="reference" />
+    <attr name="layout_viewIndicatorWidget" format="reference" />
+    <attr name="layout_viewCheckboxWidget" format="reference" />
+    <attr name="layout_viewSwitchWidget" format="reference" />
+    <attr name="layout_viewTextboxWidget" format="reference" />
+    <attr name="layout_viewSpinnerWidget" format="reference" />
+    <attr name="layout_viewSpinnerWidgetItem" format="reference" />
+    
+    
+    <!-- ====================================================
+    	 	VIEW ATTRIBUTES
+    -->
+    
+    <declare-styleable name="TitleOptions">
+        <attr name="title_text" format="string" localization="suggested" />
+    </declare-styleable>
+    
+    <declare-styleable name="SummaryOptions">
+        <attr name="summary_text" format="string" localization="suggested" />
+    </declare-styleable>
+    
+    <declare-styleable name="CompoundOptions">
+        <attr name="compound_checked" format="string" localization="suggested" />
+    </declare-styleable>
+    
+    <declare-styleable name="ViewDimensionOptions">
+        <attr name="layout_dimens_maxWidth" format="reference|dimension" />
+        <attr name="layout_dimens_minWidth" format="reference|dimension" />
+        <attr name="layout_dimens_maxHeight" format="reference|dimension" />
+        <attr name="layout_dimens_minHeight" format="reference|dimension" />
+        
+        <attr name="layout_dimens_setWidthAsHeight" format="boolean" />
+        <attr name="layout_dimens_setHeightAsWidth" format="boolean" />
+    </declare-styleable>
+    
+    <declare-styleable name="StringArrayOptions">
+        <attr name="array_values" format="reference" />
+        <attr name="array_names" format="reference" />
+    </declare-styleable>
+    
+    <!-- CircularImageView for custom shape -->
+    <declare-styleable name="CircularImageView">
+
+        <!-- Specifies whether or not to draw a circular border around the image. -->
+        <attr name="civ_border" format="boolean"/>
+        <!-- Specifies the color of the border draw around the image. (if enabled) -->
+        <attr name="civ_border_color" format="color"/>
+        <!-- Makes the border this pixels wide. (if enabled) -->
+        <attr name="civ_border_width" format="dimension"/>
+        <!-- Specifies whether or not to draw a selector on this view upon touch events. -->
+        <attr name="civ_selector" format="boolean"/>
+        <!-- Specifies the color of the selector draw on top of the image upon touch events. (if enabled) -->
+        <attr name="civ_selector_color" format="color"/>
+        <!-- Specifies the color of the selector stroke drawn around the image upon touch events. Be sure to provide some opacity. (if enabled) -->
+        <attr name="civ_selector_stroke_color" format="color"/>
+        <!-- Makes the selector stroke drawn around the image upon touch events this pixels wide. (if enabled) -->
+        <attr name="civ_selector_stroke_width" format="dimension"/>
+        <!-- Specifies whether or not to draw a shadow around your circular image. -->
+        <attr name="civ_shadow" format="boolean"/>
+    </declare-styleable>
+    
+    <declare-styleable name="CircularImageViewStyle">
+        <attr name="circularImageViewDefault" format="reference" />
+    </declare-styleable>
+    
+</resources>

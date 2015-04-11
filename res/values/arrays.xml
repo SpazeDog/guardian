@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string-array name="interval_names">
+        <item>1 Minute</item>		<!-- 1 Minute -->
+        <item>2 Minutes</item>		<!-- 2 Minutes -->
+        <item>3 Minutes</item>		<!-- 3 Minutes -->
+        <item>4 Minutes</item>		<!-- 4 Minutes -->
+        <item>5 Minutes</item>		<!-- 5 Minutes -->
+        <item>10 Minutes</item>		<!-- 10 Minutes -->
+        <item>15 Minutes</item>		<!-- 15 Minutes -->
+	</string-array>
+	
+    <string-array name="interval_values">
+        
+        <!-- Minutes = (x / 1000) / 60 -->
+        
+        <item>60000</item>		<!-- 1 Minute -->
+        <item>120000</item>		<!-- 2 Minutes -->
+        <item>180000</item>		<!-- 3 Minutes -->
+        <item>240000</item>		<!-- 4 Minutes -->
+        <item>300000</item>		<!-- 5 Minutes -->
+        <item>600000</item>		<!-- 10 Minutes -->
+        <item>900000</item>		<!-- 15 Minutes -->
+	</string-array>
+	
+    <string-array name="cpu_threshold_names">
+        <item>10%</item>	
+        <item>15%</item>	
+        <item>20%</item>
+        <item>25%</item>	
+        <item>30%</item>	
+        <item>35%</item>	
+        <item>40%</item>	
+        <item>45%</item>
+        <item>50%</item>
+        <item>55%</item>	
+        <item>60%</item>	
+        <item>65%</item>	
+        <item>70%</item>
+        <item>75%</item>	
+        <item>80%</item>	
+        <item>85%</item>	
+        <item>90%</item>
+        <item>95%</item>	
+	</string-array>
+	
+    <string-array name="cpu_threshold_values">
+        <item>10</item>	
+        <item>15</item>	
+        <item>20</item>
+        <item>25</item>	
+        <item>30</item>	
+        <item>35</item>	
+        <item>40</item>	
+        <item>45</item>
+        <item>50</item>
+        <item>55</item>	
+        <item>60</item>	
+        <item>65</item>	
+        <item>70</item>
+        <item>75</item>	
+        <item>80</item>	
+        <item>85</item>	
+        <item>90</item>
+        <item>95</item>	
+	</string-array>
+	
+    <string-array  name="service_action_names">
+        <item>Notify</item>
+        <item>Force Close</item>
+        <item>Reboot Device</item>
+        <item>Auto</item>
+    </string-array>
+    
+    <string-array  name="service_action_values">
+        <item>notify</item>
+        <item>kill</item>
+        <item>reboot</item>
+        <item>auto</item>
+    </string-array>
+    
+    <string-array  name="service_engine_names">
+        <item>Persistent</item>
+        <item>Scheduled</item>
+    </string-array>
+    
+    <string-array  name="service_engine_values">
+        <item>persistent</item>
+        <item>scheduled</item>
+    </string-array>
+    
+</resources>
