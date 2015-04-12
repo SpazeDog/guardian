@@ -19,10 +19,6 @@
 
 package com.spazedog.guardian;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
