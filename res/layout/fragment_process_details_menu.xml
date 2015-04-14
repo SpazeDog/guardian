@@ -8,7 +8,7 @@
     <com.spazedog.guardian.views.ExtendedLinearLayout
         android:orientation="vertical"
 	    android:id="@+id/menu_kill"
-	    style="?android:attr/actionButtonStyle"
+	    style="?attr/actionButtonStyle"
 	    android:layout_height="match_parent"
 	    android:layout_width="match_parent"
 	    android:padding="?attr/actionBarMenuPadding"
