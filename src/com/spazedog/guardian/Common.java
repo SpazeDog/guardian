@@ -26,6 +26,7 @@ import android.graphics.Typeface;
 import android.support.annotation.AttrRes;
 import android.support.annotation.RawRes;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,76 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 public class Common {
+	
+	public static class LOG {
+		public static final int DEBUG = Log.DEBUG;
+		public static final int INFO = Log.INFO;
+		public static final int ERROR = Log.ERROR;
+		
+		public static void Debug(Object caller, String msg, Throwable tr) {
+			Print(DEBUG, caller.getClass().getName(), msg, tr);
+		}
+		
+		public static void Debug(Object caller, String msg) {
+			Print(DEBUG, caller.getClass().getName(), msg, null);
+		}
+		
+		public static void Debug(String tag, String msg, Throwable tr) {
+			Print(DEBUG, tag, msg, tr);
+		}
+		
+		public static void Debug(String tag, String msg) {
+			Print(DEBUG, tag, msg, null);
+		}
+
+		public static void Info(Object caller, String msg, Throwable tr) {
+			Print(INFO, caller.getClass().getName(), msg, tr);
+		}
+		
+		public static void Info(Object caller, String msg) {
+			Print(INFO, caller.getClass().getName(), msg, null);
+		}
+		
+		public static void Info(String tag, String msg, Throwable tr) {
+			Print(INFO, tag, msg, tr);
+		}
+		
+		public static void Info(String tag, String msg) {
+			Print(INFO, tag, msg, null);
+		}
+
+		public static void Error(Object caller, String msg, Throwable tr) {
+			Print(ERROR, caller.getClass().getName(), msg, tr);
+		}
+		
+		public static void Error(Object caller, String msg) {
+			Print(ERROR, caller.getClass().getName(), msg, null);
+		}
+		
+		public static void Error(String tag, String msg, Throwable tr) {
+			Print(ERROR, tag, msg, tr);
+		}
+		
+		public static void Error(String tag, String msg) {
+			Print(ERROR, tag, msg, null);
+		}
+
+		public static void Print(int level, String tag, String msg, Throwable tr) {
+			switch (level) {
+				case DEBUG: 
+					if (Constants.ENABLE_DEBUG) {
+						Log.d(tag, msg, tr);
+					}
+					
+					break;
+					
+				case INFO: Log.i(tag, msg, tr); break;
+				case ERROR: Log.e(tag, msg, tr); break;
+				default: Log.v(tag, msg, tr);
+			}
+		}
+	}
+	
 	public static class TYPEFACE {
 		public static final Typeface DefaultRegular(Context context) {
 			return RobotoRegular(context);
