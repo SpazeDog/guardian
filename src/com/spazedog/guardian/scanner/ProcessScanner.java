@@ -27,6 +27,9 @@ import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 
 import com.spazedog.guardian.scanner.IProcess.IProcessList;
+import com.spazedog.lib.reflecttools.ReflectClass;
+import com.spazedog.lib.reflecttools.ReflectMethod;
+import com.spazedog.lib.reflecttools.utils.ReflectConstants.Match;
 
 public class ProcessScanner {
 	
@@ -43,7 +46,21 @@ public class ProcessScanner {
 	 */
 	
 		static {
-			System.loadLibrary("processScanner");
+			try {
+				System.loadLibrary("processScanner");
+				
+			} catch (Throwable e) {
+				/*
+				 * Bypass security restricted xposed modules
+				 */
+				try {
+					ReflectClass clazz = ReflectClass.forClass(System.class);
+					ReflectMethod method = clazz.findMethod("loadLibrary", Match.BEST, String.class);
+					
+					method.invokeOriginal("processScanner");
+				
+				} catch (Throwable ei) {}
+			}
 		}
 		/*
 		 * pidList:
