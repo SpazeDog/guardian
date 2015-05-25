@@ -38,6 +38,7 @@ import com.spazedog.guardian.R;
 public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 	
 	abstract String getProcessName();
+	abstract int getProcessUid();
 	abstract int getProcessId();
 	abstract int getImportance();
 	abstract String loadImportanceLabel(Resources resources);
@@ -53,6 +54,7 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 		
 		protected String mEntityName;
 		protected int mEntityImportance = 0;
+		protected int mEntityUid = 0;
 		protected int mEntityPid = 0;
 		protected long[] mEntityUTime = new long[]{0l, 0l};
 		protected long[] mEntitySTime = new long[]{0l, 0l};
@@ -97,14 +99,15 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 				/*
 				 * This follows the schema from libprocessScanner.so
 				 */
-				mEntityName = stat[2];
-				mEntityPid = Integer.valueOf(stat[1]);
+				mEntityName = stat[3];
+				mEntityUid = Integer.valueOf(stat[1]);
+				mEntityPid = Integer.valueOf(stat[2]);
 				mEntityImportance = Integer.valueOf(stat[0]);
-				mEntityUTime[pos] = Long.valueOf(stat[3]);
-				mEntitySTime[pos] = Long.valueOf(stat[4]);
-				mEntityCUTime[pos] = Long.valueOf(stat[5]);
-				mEntityCSTime[pos] = Long.valueOf(stat[6]);
-				mEntityUptime[pos] = Long.valueOf(stat[7]);
+				mEntityUTime[pos] = Long.valueOf(stat[4]);
+				mEntitySTime[pos] = Long.valueOf(stat[5]);
+				mEntityCUTime[pos] = Long.valueOf(stat[6]);
+				mEntityCSTime[pos] = Long.valueOf(stat[7]);
+				mEntityUptime[pos] = Long.valueOf(stat[8]);
 			}
 		}
 		
@@ -137,6 +140,10 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 		
 		public String getProcessName() {
 			return mEntityName;
+		}
+		
+		public int getProcessUid() {
+			return mEntityUid;
 		}
 		
 		public int getProcessId() {
@@ -241,6 +248,7 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 			super.writeToParcel(out, flags);
 			
 			out.writeValue(mEntityName);
+			out.writeInt(mEntityUid);
 			out.writeInt(mEntityPid);
 			out.writeInt(mEntityImportance);
 			out.writeLongArray(mEntityUTime);
@@ -255,9 +263,10 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 			super.readFromParcel(in);
 			
 			mEntityName = (String) in.readValue(String.class.getClassLoader());
+			mEntityUid = in.readInt();
 			mEntityPid = in.readInt();
 			mEntityImportance = in.readInt();
-			
+
 			in.readLongArray(mEntityUTime);
 			in.readLongArray(mEntitySTime);
 			in.readLongArray(mEntityCUTime);
@@ -283,6 +292,7 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 					out.put("mEntityName", mEntityName);
 				}
 				
+				out.put("mEntityUid", mEntityUid);
 				out.put("mEntityPid", mEntityPid);
 				out.put("mEntityImportance", mEntityImportance);
 				
@@ -334,6 +344,7 @@ public interface IProcessEntity extends IProcess, Comparable<IProcessEntity> {
 					mEntityName = in.optString("mEntityName");
 				}
 				
+				mEntityUid = in.optInt("mEntityUid");
 				mEntityPid = in.optInt("mEntityPid");
 				mEntityImportance = in.optInt("mEntityImportance");
 				

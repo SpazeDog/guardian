@@ -42,6 +42,8 @@
 
 extern "C" {
 
+	static int mCustomValues = 2;
+
 	/**
 	 * =====================================================================
 	 * ---------------------------------------------------------------------
@@ -148,7 +150,10 @@ extern "C" {
 				 */
 				isGrouped = c == '(';
 
-			} else if (cpu || ((i >= 0 && i <= 2) || (i >= 14 && i <= 17) || i == 22)) {
+			/*
+			 * customValues is the number of values added to the beginning of the original stat content
+			 */
+			} else if (cpu || i <= (mCustomValues + 1) || (i >= (mCustomValues + 13) && i <= (mCustomValues + 16)) || i == (mCustomValues + 21)) {
 				current += c;
 			}
 		}
@@ -174,14 +179,14 @@ extern "C" {
 		 * has been truncated.
 		 */
 		if (lines.size() > 0 && lines[0] != "cpu") {
-			std::ifstream in( (std::string("/proc/") + lines[1] + "/cmdline").c_str() );
+			std::ifstream in( (std::string("/proc/") + lines[mCustomValues] + "/cmdline").c_str() );
 
 			if (in && in.good()) {
 				std::string line = "";
 				std::getline(in, line);
 
 				if (!line.empty()) {
-					lines[2] = fixProcessNameSyntax(line);
+					lines[mCustomValues+1] = fixProcessNameSyntax(line);
 				}
 			}
 
@@ -228,23 +233,28 @@ extern "C" {
 		 */
 		bool listCollection = collectFromList == JNI_TRUE;
 
+		typedef std::pair<std::string, std::string> TypeDefPair;
+		typedef std::vector< std::pair<std::string, TypeDefPair> > TypeDefVector;
+
 		/*
 		 * Unpack the predefined process list from JVM
 		 */
-		std::vector< std::pair<std::string, std::string> > typeList;
+		TypeDefVector typeList;
 
 		if (processList != NULL) {
 			int size = env->GetArrayLength(processList);
 			jint* body = env->GetIntArrayElements(processList, 0);
 
-			for (int i=0, x=1; x < size; i += 2, x += 2) {
+			for (int i=0, x=1, y=2; y < size; i += 3, x += 3, y += 3) {
 				std::stringstream pidStream;
+				std::stringstream uidStream;
 				std::stringstream typeStream;
 
 				pidStream << body[i];
-				typeStream << body[x];
+				uidStream << body[x];
+				typeStream << body[y];
 
-				typeList.push_back( std::pair<std::string, std::string>(pidStream.str(), typeStream.str()) );
+				typeList.push_back( std::pair<std::string, TypeDefPair>(pidStream.str(), TypeDefPair(uidStream.str(), typeStream.str())) );
 			}
 		}
 
@@ -271,6 +281,7 @@ extern "C" {
 
 			if (procDirectory != NULL) {
 				while ((procEntity = readdir(procDirectory)) != NULL) {
+					std::string uid = "0";
 					std::string type = "0";
 					std::string entityName = procEntity->d_name;
 					bool isProcess = isIntegerString(entityName);
@@ -280,9 +291,12 @@ extern "C" {
 					 * If isProcess is false, there is no need to search the 'Type List'
 					 */
 					if (isProcess) {
-						for (std::vector< std::pair<std::string, std::string> >::iterator it = typeList.begin() ; it != typeList.end(); ++it) {
+						for (TypeDefVector::iterator it = typeList.begin() ; it != typeList.end(); ++it) {
 							if (it->first == entityName) {
-								type = std::string( it->second );
+								TypeDefPair typePair = it->second;
+
+								uid = std::string( typePair.first );
+								type = std::string( typePair.second );
 								isListedProcess = true;
 
 								break;
@@ -297,8 +311,15 @@ extern "C" {
 							std::string line = "";
 							std::getline(in, line);
 
+							std::stringstream asambler;
+							asambler << type;
+							asambler << " ";
+							asambler << uid;
+							asambler << " ";
+							asambler << line;
+
 							if (!line.empty()) {
-								lines.push_back( (type + " " + line) );
+								lines.push_back( asambler.str() );
 							}
 						}
 

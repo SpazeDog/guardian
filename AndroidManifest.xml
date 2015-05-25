@@ -20,6 +20,10 @@
         android:theme="@style/App.Theme.Material.Light"
         android:name="com.spazedog.guardian.application.Controller">
         
+        <meta-data android:value="true" android:name="xposedmodule" />
+        <meta-data android:value="30+" android:name="xposedminversion" />
+        <meta-data android:value="WakeLock Monitoring" android:name="xposeddescription" />
+        
         <service android:name="com.spazedog.guardian.backend.MonitorService"></service>
         
         <receiver android:name="com.spazedog.guardian.backend.MonitorReceiver">

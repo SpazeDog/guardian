@@ -37,6 +37,7 @@ import com.spazedog.guardian.application.Settings.ISettingsListener;
 import com.spazedog.guardian.application.Settings.ISettingsWrapper;
 import com.spazedog.guardian.application.Settings.Type;
 import com.spazedog.guardian.backend.MonitorReceiver;
+import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.utils.AbstractHandler;
 
 public class Controller extends Application implements ISettingsWrapper, ISettingsListener {
@@ -94,6 +95,7 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	private Intent mServiceIntent;
 	
 	private Settings mSettings;
+	private WakeLockManager mWakelockManager;
 	
 	@Override
 	public void onCreate() {
@@ -103,6 +105,7 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 		mServiceIntent = new Intent(MonitorReceiver.ACTION_SCHEDULE_SERVICE, null, this, MonitorReceiver.class);
 		mSettings = new Settings(this);
 		mSettings.addListener(this);
+		mWakelockManager = WakeLockManager.getInstance();
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -135,6 +138,10 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	@Override
 	public Settings getSettings() {
 		return mSettings;
+	}
+	
+	public WakeLockManager getWakeLockManager() {
+		return mWakelockManager;
 	}
 	
 	public void setServiceBinder(IServiceBinder binder) {

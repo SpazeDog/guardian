@@ -36,15 +36,25 @@ import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.util.Log;
 
+import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.scanner.IProcessEntity.ProcessEntity;
 
 public class ProcessEntityAndroid extends ProcessEntity {
 	
 	protected String mEntityPackageName;
 	protected String mEntityPackageLabel;
+	protected ProcessLockInfo mProcessLockInfo;
 	
 	protected ProcessEntityAndroid() {
 		super();
+	}
+	
+	protected void updateLocks(ProcessLockInfo processLockInfo) {
+		mProcessLockInfo = processLockInfo;
+	}
+	
+	public ProcessLockInfo getProcessLockInfo() {
+		return mProcessLockInfo;
 	}
 	
 	@Override
@@ -177,11 +187,21 @@ public class ProcessEntityAndroid extends ProcessEntity {
 	@Override
 	public void writeToParcel(Parcel out, int flags) {
 		super.writeToParcel(out, flags);
+		
+		out.writeInt(mProcessLockInfo != null ? 1 : 0);
+		
+		if (mProcessLockInfo != null) {
+			out.writeParcelable(mProcessLockInfo, flags);
+		}
 	}
 	
 	@Override
 	public void readFromParcel(Parcel in) {
 		super.readFromParcel(in);
+		
+		if (in.readInt() > 0) {
+			mProcessLockInfo = (ProcessLockInfo) in.readParcelable(ProcessLockInfo.class.getClassLoader());
+		}
 	}
 	
 	
@@ -231,6 +251,10 @@ public class ProcessEntityAndroid extends ProcessEntity {
 					out.put("mEntityPackageLabel", mEntityPackageLabel);
 				}
 				
+				if (mProcessLockInfo != null) {
+					out.put("mProcessLockInfo", mProcessLockInfo);
+				}
+				
 				return out;
 			}
 			
@@ -252,6 +276,10 @@ public class ProcessEntityAndroid extends ProcessEntity {
 			
 			if (!in.isNull("mEntityPackageName")) {
 				mEntityPackageName = in.getString("mEntityPackageName");
+			}
+			
+			if (!in.isNull("mProcessLockInfo")) {
+				mProcessLockInfo = new ProcessLockInfo( new JSONObject(in.getString("mProcessLockInfo")) );
 			}
 			
 		} catch (JSONException e) {
