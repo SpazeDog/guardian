@@ -31,6 +31,8 @@ import com.spazedog.guardian.R;
 
 public class IndicatorWidget extends WidgetView<View> {
 	
+	protected Boolean mEnableListener = true;
+	
 	public IndicatorWidget(Context context) {
 		this(context, null);
 	}
@@ -63,10 +65,19 @@ public class IndicatorWidget extends WidgetView<View> {
 		View widget = getWidget();
 		
 		if (widget.isActivated() != activate) {
-			widget.setActivated(activate);
-			
-			if (invokeListener) {
-				invokeOptionChangeListener((Boolean) activate);
+			if (mEnableListener) {
+				mEnableListener = false;
+				
+				widget.setActivated(activate);
+				
+				if (invokeListener) {
+					invokeOptionChangeListener((Boolean) activate);
+				}
+				
+				mEnableListener = true;
+				
+			} else {
+				widget.setActivated(activate);
 			}
 		}
 	}

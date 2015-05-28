@@ -31,6 +31,8 @@ import com.spazedog.guardian.R;
 
 public class CheckBoxWidget extends WidgetView<CompoundButton> implements OnCheckedChangeListener {
 	
+	protected Boolean mEnableListener = true;
+	
 	public CheckBoxWidget(Context context) {
 		this(context, null);
 	}
@@ -54,7 +56,9 @@ public class CheckBoxWidget extends WidgetView<CompoundButton> implements OnChec
 	
 	@Override
 	public void onCheckedChanged(CompoundButton view, boolean checked) {
-		invokeOptionChangeListener((Boolean) checked);
+		if (mEnableListener) {
+			invokeOptionChangeListener((Boolean) checked);
+		}
 	}
 	
 	public Boolean isChecked() {
@@ -69,21 +73,27 @@ public class CheckBoxWidget extends WidgetView<CompoundButton> implements OnChec
 		CompoundButton widget = (CompoundButton) getWidget();
 		
 		if (widget.isChecked() != checked) {
-			widget.setOnCheckedChangeListener(null);
-			widget.setChecked(checked);
-			
-			if (invokeListener) {
-				invokeOptionChangeListener((Boolean) checked);
+			if (mEnableListener) {
+				mEnableListener = false;
+				
+				widget.setChecked(checked);
+				
+				if (invokeListener) {
+					invokeOptionChangeListener(checked);
+				}
+				
+				mEnableListener = true;
+				
+			} else {
+				widget.setChecked(checked);
 			}
-			
-			widget.setOnCheckedChangeListener(this);
 		}
 	}
 	
 	@Override
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
-		
+
 		CompoundButton widget = (CompoundButton) getWidget();
 		widget.setOnCheckedChangeListener(this);
 	}

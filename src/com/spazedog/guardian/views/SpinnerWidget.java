@@ -37,8 +37,16 @@ import com.spazedog.guardian.R;
 
 public class SpinnerWidget extends WidgetView<Spinner> implements OnItemSelectedListener {
 	
+	protected Boolean mEnableListener = true;
+	
 	protected List<String> mSpinnerValues = new ArrayList<String>();
 	protected List<String> mSpinnerNames = new ArrayList<String>();
+	
+	/*
+	 * Used to make sure that the internal change listener does not run 
+	 * the custom listener when it should not. 
+	 */
+	protected Integer mSelectedIndex = 0;
 	
 	public SpinnerWidget(Context context) {
 		this(context, null);
@@ -92,30 +100,37 @@ public class SpinnerWidget extends WidgetView<Spinner> implements OnItemSelected
 	
 	public void setSelectedValue(String value, boolean invokeListener) {
 		Spinner spinner = (Spinner) getWidget();
-		int position = mSpinnerValues.indexOf(value);
+		mSelectedIndex = mSpinnerValues.indexOf(value);
 		
-		if (position >= 0) {
-			spinner.setOnItemSelectedListener(null);
-			spinner.setSelection(position);
-			
-			if (invokeListener) {
-				invokeOptionChangeListener(getSelectedValue());
+		if (mSelectedIndex >= 0 && spinner.getSelectedItemPosition() != mSelectedIndex) {
+			if (mEnableListener) {
+				mEnableListener = false;
+				
+				spinner.setSelection(mSelectedIndex);
+				
+				if (invokeListener) {
+					invokeOptionChangeListener(getSelectedValue());
+				}
+				
+				mEnableListener = true;
+				
+			} else {
+				spinner.setSelection(mSelectedIndex);
 			}
-			
-			spinner.setOnItemSelectedListener(this);
 		}
 	}
 	
 	public String getSelectedValue() {
-		Spinner spinner = (Spinner) getWidget();
-		int position = spinner.getSelectedItemPosition();
-		
-		return position >= 0 ? mSpinnerValues.get(position) : null;
+		return mSelectedIndex >= 0 ? mSpinnerValues.get(mSelectedIndex) : null;
 	}
 
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-		invokeOptionChangeListener(mSpinnerValues.get(position));
+		if (mEnableListener && mSelectedIndex != position) {
+			invokeOptionChangeListener(mSpinnerValues.get(position));
+		}
+		
+		mSelectedIndex = position;
 	}
 
 	@Override
