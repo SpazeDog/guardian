@@ -27,6 +27,7 @@ import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 import android.util.Log;
 
+import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
@@ -127,6 +128,7 @@ public class ProcessScanner {
 					
 					IProcessEntity oldEntity = processList != null ? processList.findEntity(pid) : null;
 					IProcessEntity newEntity = type > 0 ? new ProcessEntityAndroid() : new ProcessEntityLinux();
+					newEntity.updateStat(stats, oldEntity);
 					
 					if (processLockInfo != null && type > 0) {
 						for (ProcessLockInfo lockInfo : processLockInfo) {
@@ -134,13 +136,15 @@ public class ProcessScanner {
 							 * It is much faster to compare two int values than long string values. 
 							 * But one uid might have multiple processes, so we need to check this to, but no need if the uid does not match. 
 							 */
+							
+							Common.LOG.Debug(IProcessList.class.getName(), "Checking Wakelock Info\n\t\tLock Name = " + lockInfo.getProcessName() + "\n\t\tProcess Name = " + newEntity.getProcessName());
+							
 							if (lockInfo.getUid() == uid && lockInfo.getProcessName().equals(newEntity.getProcessName())) {
 								((ProcessEntityAndroid) newEntity).updateLocks(lockInfo); break;
 							}
 						}
 					}
 					
-					newEntity.updateStat(stats, oldEntity);
 					systemProcess.addEntity(newEntity);
 				}
 			}
