@@ -87,6 +87,22 @@ public class Common {
 		public static void Error(String tag, String msg) {
 			Print(ERROR, tag, msg, null);
 		}
+		
+		public static void Trace(int level, Object caller, String msg) {
+			Trace(level, caller.getClass().getName(), msg);
+		}
+		
+		public static void Trace(int level, String tag, String msg) {
+			msg += "\n";
+			
+			for (StackTraceElement stack : Thread.currentThread().getStackTrace()) {
+				msg += "\t\t";
+				msg += stack.toString();
+				msg += "\n";
+			}
+			
+			Print(level, tag, msg.toString(), null);
+		}
 
 		public static void Print(int level, String tag, String msg, Throwable tr) {
 			switch (level) {

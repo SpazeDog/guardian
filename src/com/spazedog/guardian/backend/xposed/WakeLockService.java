@@ -25,8 +25,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +42,7 @@ import android.util.Log;
 
 import com.spazedog.guardian.Common.LOG;
 import com.spazedog.lib.reflecttools.ReflectClass;
+import com.spazedog.lib.reflecttools.ReflectMethod;
 import com.spazedog.lib.reflecttools.utils.ReflectConstants.Match;
 import com.spazedog.lib.reflecttools.utils.ReflectException;
 
@@ -122,7 +126,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 							mProcessLockInfo.put(processName, (processLock = new ProcessLockInfo(processName, uid)));
 						}
 						
-						WakeLockInfo wakeLock = new WakeLockInfo(tag, flags);
+						WakeLockInfo wakeLock = new WakeLockInfo(tag, pid, flags);
 						processLock.addWakeLock(wakeLock);
 						mWakeLockInfo.put(identifier, wakeLock);
 						mProcessNameCache.put(identifier, processName);
@@ -226,6 +230,22 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	
 	protected String getPMWakeLockTag(ReflectClass pmWakeLock) {
 		return (String) pmWakeLock.findField("mTag").getValue();
+	}
+	
+	@Override
+	public void srv_releaseForPid(int pid) {
+		Set<IBinder> cache = new HashSet<IBinder>();
+		ReflectMethod releaseMethod = mInstance.findMethod("releaseWakeLockInternal", Match.BEST, IBinder.class, Integer.TYPE);
+		
+		for (Entry<IBinder, WakeLockInfo> entry : mWakeLockInfo.entrySet()) {
+			if (entry.getValue().getPid() == pid) {
+				cache.add(entry.getKey());
+			}
+		}
+		
+		for (IBinder identifier : cache) {
+			releaseMethod.invoke(identifier, 0);
+		}
 	}
 	
 	@Override
@@ -343,6 +363,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	
 	public static class WakeLockInfo implements Parcelable {
 		private String mTag;
+		private int mPid;
 		private int mFlags;
 		private long mTimestamp;
 		private long mTime;
@@ -356,6 +377,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			try {
 				JSONObject out = new JSONObject();
 				out.put("mTag", mTag);
+				out.put("mPid", mPid);
 				out.put("mFlags", mFlags);
 				out.put("mTimestamp", mTimestamp);
 				out.put("mTime", mTime);
@@ -372,6 +394,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		@Override
 		public void writeToParcel(Parcel out, int flags) {
 			out.writeString(mTag);
+			out.writeInt(mPid);
 			out.writeInt(mFlags);
 			out.writeLong(mTimestamp);
 			out.writeLong(mTime);
@@ -380,6 +403,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		public WakeLockInfo(JSONObject in) {
 			try {
 				mTag = in.getString("mTag");
+				mPid = in.getInt("mPid");
 				mFlags = in.getInt("mFlags");
 				mTimestamp = in.getLong("mTimestamp");
 				mTime = in.getLong("mTime");
@@ -391,12 +415,14 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		
 		public WakeLockInfo(Parcel in) {
 			mTag = in.readString();
+			mPid = in.readInt();
 			mFlags = in.readInt();
 			mTimestamp = in.readLong();
 			mTime = in.readLong();
 		}
 		
-		protected WakeLockInfo(String tag, int flags) {
+		protected WakeLockInfo(String tag, int pid, int flags) {
+			mPid = pid;
 			mTag = tag;
 			mFlags = flags;
 			
@@ -414,6 +440,10 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		
 		public String getTag() {
 			return mTag;
+		}
+		
+		public int getPid() {
+			return mPid;
 		}
 		
 		public int getFlags() {

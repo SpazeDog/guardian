@@ -24,13 +24,16 @@
         <meta-data android:value="30+" android:name="xposedminversion" />
         <meta-data android:value="WakeLock Monitoring" android:name="xposeddescription" />
         
-        <service android:name="com.spazedog.guardian.backend.MonitorService"></service>
+        <service android:name="com.spazedog.guardian.backend.PersistentService"></service>
+        <service android:name="com.spazedog.guardian.backend.ScheduledService"></service>
         
-        <receiver android:name="com.spazedog.guardian.backend.MonitorReceiver">
+        <receiver android:name="com.spazedog.guardian.backend.MonitorService$MonitorServiceReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
 			</intent-filter>
-			
+        </receiver>
+        
+        <receiver android:name="com.spazedog.guardian.backend.ScheduledService$ScheduledServiceReceiver">
 			<intent-filter>
 				<action android:name="guardian.intent.action.SCHEDULE_SERVICE" />
 			</intent-filter>

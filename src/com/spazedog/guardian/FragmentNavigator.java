@@ -22,6 +22,7 @@ package com.spazedog.guardian;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v4.app.Fragment;
@@ -33,8 +34,8 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.application.Controller.IServiceListener;
-import com.spazedog.guardian.application.Controller.Status;
 import com.spazedog.guardian.application.Settings;
+import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.Status;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.utils.AbstractHandler;
 import com.spazedog.guardian.views.IndicatorWidget;
@@ -45,6 +46,14 @@ import com.spazedog.guardian.views.WidgetView.WidgetChangeListener;
 public class FragmentNavigator extends AbstractFragment implements OnClickListener, IServiceListener, WidgetChangeListener {
 	
 	private static class ServiceHandler extends AbstractHandler<FragmentNavigator> {
+		private ProgressDialog mProgress;
+		
+		/*
+		 * In some 4.x Android version the Handler.removeMessages does not work properly.
+		 * We use this to make sure that progress is not displayed when service is not pending.
+		 */
+		private boolean mShowProgress = false;
+		
 		public ServiceHandler(FragmentNavigator reference) {
 			super(reference);
 		}
@@ -53,9 +62,33 @@ public class FragmentNavigator extends AbstractFragment implements OnClickListen
 		public void handleMessage(Message msg) {
 			FragmentNavigator fragment = getReference();
 			
+			removeMessages(2);
+			
 			if (fragment != null) {
-				fragment.mSwitch.setChecked( msg.what > Status.STOPPED );
-				fragment.mSwitch.setWidgetEnabled( msg.what == Status.STOPPED || msg.what == Status.STARTED );
+				switch (msg.what) {
+					case 1:
+						mShowProgress = msg.arg1 == Status.PENDING;
+						fragment.mSwitch.setChecked( msg.arg1 > Status.STOPPED );
+						fragment.mSwitch.setWidgetEnabled( msg.arg1 == Status.STOPPED || msg.arg1 == Status.STARTED );
+						
+						if (mShowProgress) {
+							sendEmptyMessageDelayed(2, 1000);
+							
+						} else if (mProgress != null) {
+							mProgress.dismiss();
+							mProgress = null;
+						}
+						
+						break;
+						
+					case 2:
+						if (mShowProgress && (mProgress == null || !mProgress.isShowing())) {
+							try {
+								mProgress = ProgressDialog.show(fragment.getActivity(), "", "Waiting for Service Response. Please wait...", true, true);
+								
+							} catch (Throwable e) {}
+						}
+				}
 			}
 		}
 	}
@@ -192,7 +225,7 @@ public class FragmentNavigator extends AbstractFragment implements OnClickListen
 	
 	@Override
 	public void onServiceChange(Integer status, Boolean sticky) {
-		mServiceHandler.obtainMessage(status, sticky ? 1 : 0, 0).sendToTarget();
+		mServiceHandler.obtainMessage(1, status, sticky ? 1 : 0).sendToTarget();
 	}
 
 	@Override

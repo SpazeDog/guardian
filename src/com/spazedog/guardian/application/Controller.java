@@ -24,34 +24,20 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import android.app.AlarmManager;
 import android.app.Application;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
 import android.os.Message;
-import android.os.SystemClock;
 
+import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Settings.ISettingsListener;
 import com.spazedog.guardian.application.Settings.ISettingsWrapper;
 import com.spazedog.guardian.application.Settings.Type;
-import com.spazedog.guardian.backend.MonitorReceiver;
+import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl;
+import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.IMonitorServiceListener;
+import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.Status;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.utils.AbstractHandler;
 
-public class Controller extends Application implements ISettingsWrapper, ISettingsListener {
-	
-	/*
-	 * This are service status codes that are sent via the internal message system to Activities and Fragments. 
-	 * Status.PENDING means that a stop or start request has been sent to the service and Controller is now awaiting response from the service. 
-	 * Status.STARTED and Status.STOPPED is the response that Controller received from the service and indicates it's current status. 
-	 */
-	public static class Status {
-		public static final int STOPPED = -1;
-		public static final int PENDING = 0;
-		public static final int STARTED = 1;
-	}
+public class Controller extends Application implements ISettingsWrapper, ISettingsListener, IMonitorServiceListener {
 	
 	public static interface IControllerWrapper {
 		public Controller getController();
@@ -59,11 +45,6 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	
 	public static interface IServiceListener {
 		public void onServiceChange(Integer status, Boolean sticky);
-	}
-	
-	public static interface IServiceBinder {
-		public boolean ping();
-		public void stop();
 	}
 	
 	private static class ServiceHandler extends AbstractHandler<Controller> {
@@ -86,13 +67,9 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	}
 	
 	private ServiceHandler mServiceHandler;
-	private IServiceBinder mServiceBinder;
-	
 	private Set<IServiceListener> mServiceListeners = Collections.newSetFromMap(new WeakHashMap<IServiceListener, Boolean>());
-	
-	private Integer mServiceStatus;
 	private final Object mServiceLock = new Object();
-	private Intent mServiceIntent;
+	private MonitorServiceControl mServiceControl;
 	
 	private Settings mSettings;
 	private WakeLockManager mWakelockManager;
@@ -102,10 +79,17 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 		super.onCreate();
 		
 		mServiceHandler = new ServiceHandler(this);
-		mServiceIntent = new Intent(MonitorReceiver.ACTION_SCHEDULE_SERVICE, null, this, MonitorReceiver.class);
 		mSettings = new Settings(this);
-		mSettings.addListener(this);
 		mWakelockManager = WakeLockManager.getInstance();
+		mServiceControl = MonitorServiceControl.getInstance(this, mSettings.getServiceEngine());
+		
+		/*
+		 * mServiceControl needs to be configured before adding settings listener. 
+		 * When adding the listener, LISTENER_ADDED will be invoked, which in turn 
+		 * will invoke either startService() or stopService()
+		 */
+		mServiceControl.setMonitorServiceListener(this);
+		mSettings.addListener(this);
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -115,10 +99,10 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 			case LISTENER_ADDED:
 			case SERVICE_STATE: 
 				
-				if (mSettings.isServiceEnabled() && getServiceState() != Status.STARTED) {
+				if (mSettings.isServiceEnabled()) {
 					startService();
 					
-				} else if (!mSettings.isServiceEnabled() && getServiceState() != Status.STOPPED) {
+				} else if (!mSettings.isServiceEnabled()) {
 					stopService();
 				}
 				
@@ -126,12 +110,10 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 				
 			case SERVICE_INTERVAL: 
 			case SERVICE_ENGINE: 
-				
-				if (getServiceState() == Status.STARTED) {
+
+				if (mSettings.isServiceEnabled()) {
 					restartService();
 				}
-				
-				break;
 		}
 	}
 	
@@ -142,17 +124,6 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	
 	public WakeLockManager getWakeLockManager() {
 		return mWakelockManager;
-	}
-	
-	public void setServiceBinder(IServiceBinder binder) {
-		mServiceBinder = binder;
-		
-		if (binder != null) {
-			invokeServiceListeners((mServiceStatus = Status.STARTED), false);
-			
-		} else if (binder == null) {
-			invokeServiceListeners((mServiceStatus = Status.STOPPED), false);
-		}
 	}
 	
 	public void addServiceListener(IServiceListener listener) {
@@ -174,34 +145,40 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	
 	public void startService() {
 		synchronized(mServiceLock) {
-			if (getServiceState() != Status.STARTED) {
-				invokeServiceListeners((mServiceStatus = Status.PENDING), false);
-				setScheduler(1000, null);
+			if (mServiceControl.status() == Status.STOPPED) {
+				String engine = mSettings.getServiceEngine();
+				
+				if (!mServiceControl.identifier().equals( engine )) {
+					Common.LOG.Debug(this, "Switching Service Engine from " + mServiceControl.identifier() + " to " + engine);
+					mServiceControl = MonitorServiceControl.getInstance(this, engine);
+					mServiceControl.setMonitorServiceListener(this);
+				}
+				
+				Common.LOG.Debug(this, "Requesting Service Start, Engine = " + mServiceControl.identifier());
+				mServiceControl.start();
 				
 			} else {
-				invokeServiceListeners((mServiceStatus = Status.STARTED), true);
+				Common.LOG.Debug(this, "Request for Service Start failed as it is alrady started, Engine = " + mServiceControl.identifier());
 			}
 		}
 	}
 	
 	public void stopService() {
 		synchronized(mServiceLock) {
-			if (mServiceBinder != null && mServiceBinder.ping()) {
-				invokeServiceListeners((mServiceStatus = Status.PENDING), false);
-				mServiceBinder.stop();
-				
-			} else if (hasScheduler()) {
-				removeScheduler();
-				invokeServiceListeners((mServiceStatus = Status.STOPPED), false);
+			if (mServiceControl.status() == Status.STARTED) {
+				Common.LOG.Debug(this, "Requesting Service Stop, Engine = " + mServiceControl.identifier());
+				mServiceControl.stop();
 				
 			} else {
-				invokeServiceListeners((mServiceStatus = Status.STOPPED), true);
+				Common.LOG.Debug(this, "Request for Service Stop failed as it is alrady stopped, Engine = " + mServiceControl.identifier());
 			}
 		}
 	}
 
 	public void restartService() {
 		synchronized(mServiceLock) {
+			Common.LOG.Debug(this, "Requesting Service Restart");
+			
 			if (getServiceState() == Status.STOPPED) {
 				startService();
 				
@@ -210,6 +187,7 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 					@Override
 					public void onServiceChange(Integer status, Boolean sticky) {
 						if (status == Status.STOPPED) {
+							Common.LOG.Debug(Controller.this, "The Service has been stopped, continuing Service Restart Request");
 							removeServiceListener(this);
 							startService();
 						}
@@ -221,59 +199,28 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 		}
 	}
 	
-	public Integer getServiceState() {
-		if (mServiceStatus == null) {
-			mServiceStatus = (mServiceBinder != null && mServiceBinder.ping()) || hasScheduler() ? Status.STARTED : Status.STOPPED;
-		}
-		
-		return mServiceStatus;
+	public int getServiceState() {
+		return mServiceControl.status();
+	}
+	
+	public MonitorServiceControl getServiceControl() {
+		return mServiceControl;
 	}
 	
 	private void invokeServiceListeners(int status, Boolean sticky) {
 		synchronized(mServiceListeners) {
 			if (mServiceListeners.size() > 0) {
+				String stateName = status == Status.STOPPED ? "STOPPED" : 
+					status == Status.STARTED ? "STARTED" : "PENDING";
+				
+				Common.LOG.Debug(this, "Notifying Service Changed Listeners, State = " + stateName);
 				mServiceHandler.obtainMessage(0, status, sticky ? 1 : 0).sendToTarget();
 			}
 		}
 	}
-	
-	public void resetScheduler(Integer timeout, Bundle extras) {
-		if (getServiceState() != Status.STOPPED && mSettings.isServiceEnabled()) {
-			setScheduler(timeout, extras);
-			
-			if (getServiceState() != Status.STARTED) {
-				invokeServiceListeners((mServiceStatus = Status.STARTED), false);
-			}
-		}
-	}
-	
-	private void setScheduler(Integer timeout, Bundle extras) {
-		synchronized(mServiceIntent) {
-			if (extras != null) {
-				mServiceIntent.putExtra("service_extras", extras);
-				
-			} else {
-				mServiceIntent.removeExtra("service_extras");
-			}
-			
-			AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-			PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 1, mServiceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-			
-			alarmManager.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime()+timeout, pendingIntent);
-		}
-	}
-	
-	private void removeScheduler() {
-		synchronized(mServiceIntent) {
-			PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, mServiceIntent, PendingIntent.FLAG_NO_CREATE);
-			
-			if (pendingIntent != null) {
-				((AlarmManager) getSystemService(Context.ALARM_SERVICE)).cancel(pendingIntent);
-			}
-		}
-	}
-	
-	private Boolean hasScheduler() {
-		return PendingIntent.getBroadcast(this, 1, mServiceIntent, PendingIntent.FLAG_NO_CREATE) != null;
+
+	@Override
+	public void onServiceStateChanged(int state) {
+		invokeServiceListeners(state, false);
 	}
 }

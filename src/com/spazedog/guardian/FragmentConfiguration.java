@@ -28,8 +28,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.application.Controller.IServiceListener;
-import com.spazedog.guardian.application.Controller.Status;
 import com.spazedog.guardian.application.Settings;
+import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.Status;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.utils.AbstractHandler;
 import com.spazedog.guardian.views.CheckBoxWidget;
@@ -75,7 +75,7 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 	}
 	
 	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
+	public void onViewCreated(View view, Bundle savedInstanceState) {		
 		super.onViewCreated(view, savedInstanceState);
 		
 		Settings settings = getSettings();

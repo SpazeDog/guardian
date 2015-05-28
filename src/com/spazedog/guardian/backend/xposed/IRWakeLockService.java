@@ -29,14 +29,15 @@ import android.os.Parcel;
 import android.os.RemoteException;
 
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
-import com.spazedog.guardian.backend.xposed.WakeLockService.WakeLockInfo;
 
 public interface IRWakeLockService extends IInterface {
 	static final String DESCRIPTOR = IRWakeLockService.class.getName();
 	
 	static final int TRANSACTION_getProcessLockInfo = (IBinder.FIRST_CALL_TRANSACTION);
+	static final int TRANSACTION_releaseForPid = (IBinder.FIRST_CALL_TRANSACTION + 1);
 	
 	public List<ProcessLockInfo> srv_getProcessLockInfo() throws RemoteException;
+	public void srv_releaseForPid(int pid) throws RemoteException;
 	
 	public static abstract class Stub extends Binder implements IRWakeLockService {
 		public Stub() {
@@ -78,6 +79,9 @@ public interface IRWakeLockService extends IInterface {
 				switch (type) {
 					case TRANSACTION_getProcessLockInfo: {
 						caller.writeTypedList(srv_getProcessLockInfo());
+						
+					} case TRANSACTION_releaseForPid: {
+						srv_releaseForPid( args.readInt() );
 					}
 				}
 				
@@ -103,6 +107,23 @@ public interface IRWakeLockService extends IInterface {
 		}
 		
 		@Override
+		public void srv_releaseForPid(int pid) throws RemoteException {
+			Parcel args = Parcel.obtain();
+			Parcel callee = Parcel.obtain();
+			
+			try {
+				args.writeInterfaceToken(DESCRIPTOR);
+				args.writeInt(pid);
+				mBinder.transact(Stub.TRANSACTION_releaseForPid, args, callee, 0);
+				callee.readException();
+				
+			} finally {
+				args.recycle();
+				callee.recycle();
+			}
+		}
+		
+		@Override
 		public List<ProcessLockInfo> srv_getProcessLockInfo() throws RemoteException {
 			Parcel args = Parcel.obtain();
 			Parcel callee = Parcel.obtain();
@@ -111,6 +132,7 @@ public interface IRWakeLockService extends IInterface {
 			try {
 				args.writeInterfaceToken(DESCRIPTOR);
 				mBinder.transact(Stub.TRANSACTION_getProcessLockInfo, args, callee, 0);
+				callee.readException();
 				callee.readTypedList(lockList, ProcessLockInfo.CREATOR);
 				
 			} finally {

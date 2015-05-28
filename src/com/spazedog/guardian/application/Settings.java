@@ -40,6 +40,8 @@ public class Settings implements IControllerWrapper {
 		SERVICE_THRESHOLD,
 		SERVICE_ACTION,
 		SERVICE_ENGINE,
+		SERVICE_WAKELOCK_TIME,
+		SERVICE_WAKELOCK_ACTION,
 		ALLOW_ROOT,
 		MONITOR_LINUX,
 		LISTENER_ADDED
@@ -86,6 +88,8 @@ public class Settings implements IControllerWrapper {
 	private volatile String mSettingsServiceEngine;
 	private volatile Boolean mSettingsRootEnabled;
 	private volatile Boolean mSettingsMonitorLinux;
+	private volatile Long mSettingsServiceWakeLockTime;
+	private volatile String mSettingsServiceWakeLockAction;
 	
 	Set<ISettingsListener> mSettingsListeners = Collections.newSetFromMap(new WeakHashMap<ISettingsListener, Boolean>());
 	
@@ -140,9 +144,9 @@ public class Settings implements IControllerWrapper {
 		synchronized(mPreferences) {
 			if (isServiceEnabled() != enabled) {
 				mPreferences.edit().putBoolean("enable_service", (mSettingsServiceEnabled = enabled)).apply();
-				
-				invokeServiceListeners(Type.SERVICE_STATE);
 			}
+			
+			invokeServiceListeners(Type.SERVICE_STATE);
 		}
 	}
 	
@@ -158,9 +162,9 @@ public class Settings implements IControllerWrapper {
 		synchronized(mPreferences) {
 			if (!getServiceInterval().equals(interval)) {
 				mPreferences.edit().putInt("service_inteval", (mSettingsServiceInterval = interval)).apply();
-				
-				invokeServiceListeners(Type.SERVICE_INTERVAL);
 			}
+			
+			invokeServiceListeners(Type.SERVICE_INTERVAL);
 		}
 	}
 	
@@ -177,13 +181,11 @@ public class Settings implements IControllerWrapper {
 			if (interactive && !getServiceThreshold(interactive).equals(threshold)) {
 				mPreferences.edit().putInt("cpu_threshold_on", (mSettingsServiceThresholdOn = threshold)).apply();
 				
-				invokeServiceListeners(Type.SERVICE_THRESHOLD);
-				
 			} else if (!interactive && !getServiceThreshold(interactive).equals(threshold)) {
 				mPreferences.edit().putInt("cpu_threshold_off", (mSettingsServiceThresholdOff = threshold)).apply();
-				
-				invokeServiceListeners(Type.SERVICE_THRESHOLD);
 			}
+			
+			invokeServiceListeners(Type.SERVICE_THRESHOLD);
 		}
 	}
 	
@@ -198,18 +200,52 @@ public class Settings implements IControllerWrapper {
 		return interactive ? mSettingsServiceThresholdOn : mSettingsServiceThresholdOff;
 	}
 	
+	public void setServiceWakeLockTime(Long lockTime) {
+		synchronized(mPreferences) {
+			if (!getServiceWakeLockTime().equals(lockTime)) {
+				mPreferences.edit().putLong("wakelock_time", (mSettingsServiceWakeLockTime = lockTime)).apply();
+			}
+			
+			invokeServiceListeners(Type.SERVICE_WAKELOCK_TIME);
+		}
+	}
+	
+	public Long getServiceWakeLockTime() {
+		if (mSettingsServiceWakeLockTime == null) {
+			mSettingsServiceWakeLockTime = mPreferences.getLong("wakelock_time", 300000); // Default: 5 minutes
+		}
+		
+		return mSettingsServiceWakeLockTime;
+	}
+
+	public void setServiceWakeLockAction(String action) {
+		synchronized(mPreferences) {
+			if (!getServiceWakeLockAction().equals(action)) {
+				mPreferences.edit().putString("wakelock_action", (mSettingsServiceWakeLockAction = action)).apply();
+			}
+			
+			invokeServiceListeners(Type.SERVICE_WAKELOCK_ACTION);
+		}
+	}
+	
+	public String getServiceWakeLockAction() {
+		if (mSettingsServiceWakeLockAction == null) {
+			mSettingsServiceWakeLockAction = mPreferences.getString("wakelock_action", "notify");
+		}
+		
+		return mSettingsServiceWakeLockAction;
+	}
+	
 	public void setServiceAction(String action, Boolean interactive) {
 		synchronized(mPreferences) {
 			if (interactive && !getServiceAction(interactive).equals(action)) {
 				mPreferences.edit().putString("threshold_action_on", (mSettingsServiceActionOn = action)).apply();
 				
-				invokeServiceListeners(Type.SERVICE_ACTION);
-				
 			} else if (!interactive && !getServiceAction(interactive).equals(action)) {
 				mPreferences.edit().putString("threshold_action_off", (mSettingsServiceActionOff = action)).apply();
-				
-				invokeServiceListeners(Type.SERVICE_ACTION);
 			}
+			
+			invokeServiceListeners(Type.SERVICE_ACTION);
 		}
 	}
 	
@@ -228,9 +264,9 @@ public class Settings implements IControllerWrapper {
 		synchronized(mPreferences) {
 			if (!getServiceEngine().equals(engine)) {
 				mPreferences.edit().putString("monitor_engine", (mSettingsServiceEngine = engine)).apply();
-				
-				invokeServiceListeners(Type.SERVICE_ENGINE);
 			}
+			
+			invokeServiceListeners(Type.SERVICE_ENGINE);
 		}
 	}
 	
@@ -246,9 +282,9 @@ public class Settings implements IControllerWrapper {
 		synchronized(mPreferences) {
 			if (monitorLinux() != enable) {
 				mPreferences.edit().putBoolean("enable_linux_monitoring", (mSettingsMonitorLinux = enable)).apply();
-				
-				invokeServiceListeners(Type.MONITOR_LINUX);
 			}
+			
+			invokeServiceListeners(Type.MONITOR_LINUX);
 		}
 	}
 	

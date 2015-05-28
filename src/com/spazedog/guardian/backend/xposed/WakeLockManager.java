@@ -85,4 +85,17 @@ public class WakeLockManager {
 		
 		return new ArrayList<ProcessLockInfo>();
 	}
+	
+	public void releaseForPid(int pid) {
+		try {
+			mService.srv_releaseForPid(pid);
+		
+		} catch (RemoteException e) {
+			try {
+				establishConnection();
+				
+			} catch (Exception ei) {}
+			
+		} catch (NullPointerException e) {}
+	}
 }
