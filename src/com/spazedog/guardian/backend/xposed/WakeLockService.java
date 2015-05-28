@@ -95,10 +95,26 @@ public class WakeLockService extends IRWakeLockService.Stub {
 					mInstance.inject("notifyWakeLockAcquiredLocked", notifyWakeLockAcquired);
 					mInstance.inject("notifyWakeLockChangingLocked", notifyWakeLockChanging);
 					mInstance.inject("notifyWakeLockReleasedLocked", notifyWakeLockReleased);
+					mInstance.inject("setHalInteractiveModeLocked", notifyInteractiveModeChanging);
 				}
 				
 			} catch (ReflectException e) {
 				LOG.Error(WakeLockService.this, "The WakeLock service crashed", e);
+			}
+		}
+	};
+	
+	protected XC_MethodHook notifyInteractiveModeChanging = new XC_MethodHook() {
+		@Override
+		protected final void afterHookedMethod(final MethodHookParam param) {
+			synchronized (mWakeLockInfo) {
+				boolean isInteractive = (Boolean) param.args[0];
+				
+				if (isInteractive() != isInteractive) {
+					for (ProcessLockInfo lockInfo : mProcessLockInfo.values()) {
+						lockInfo.updateLockTime(isInteractive);
+					}
+				}
 			}
 		}
 	};
@@ -153,7 +169,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 					if (wakeLock != null && processLock != null) {
 						LOG.Debug(WakeLockService.this, "Update WakeLock: " + tag + "[" + processName + "(" + pid + ")], Total Locks: " + mWakeLockInfo.size());
 						
-						processLock.updateLockTime(wakeLock);
+						processLock.updateLockTime(wakeLock, isInteractive());
 						wakeLock.updateTimestamp();
 					}
 				}
@@ -180,7 +196,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 						ProcessLockInfo processLock = mProcessLockInfo.get(processName);
 						
 						if (processLock != null) {
-							processLock.updateLockTime(wakeLock);
+							processLock.updateLockTime(wakeLock, isInteractive());
 							processLock.removeWakeLock(wakeLock);
 						}
 					}
@@ -188,6 +204,10 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			}
 		}
 	};
+	
+	protected boolean isInteractive() {
+		return (Boolean) mInstance.findField("mHalInteractiveModeEnabled").getValue();
+	}
 	
 	protected String getProcessName(int pid) {
 		String processName = null;
@@ -263,6 +283,8 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		private String mProcessName;
 		private int mUid;
 		private long mLockTime = 0l;
+		private long mLockTimeOn = 0l;
+		private long mLockTimeOff = 0l;
 		private List<WakeLockInfo> mWakeLocks = new ArrayList<WakeLockInfo>();
 		
 		@Override
@@ -276,6 +298,8 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				out.put("mUid", mUid);
 				out.put("mProcessName", mProcessName);
 				out.put("mLockTime", mLockTime);
+				out.put("mLockTimeOn", mLockTimeOn);
+				out.put("mLockTimeOff", mLockTimeOff);
 				
 				return out;
 				
@@ -291,6 +315,8 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			out.writeInt(mUid);
 			out.writeString(mProcessName);
 			out.writeLong(mLockTime);
+			out.writeLong(mLockTimeOn);
+			out.writeLong(mLockTimeOff);
 			out.writeTypedList(mWakeLocks);
 		}
 		
@@ -299,6 +325,8 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				mUid = in.getInt("mUid");
 				mProcessName = in.getString("mProcessName");
 				mLockTime = in.getLong("mLockTime");
+				mLockTimeOn = in.getLong("mLockTimeOn");
+				mLockTimeOff = in.getLong("mLockTimeOff");
 				
 			} catch (JSONException e) {
 				Log.e(getClass().getName(), e.getMessage(), e);
@@ -309,6 +337,8 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			mUid = in.readInt();
 			mProcessName = in.readString();
 			mLockTime = in.readLong();
+			mLockTimeOn = in.readLong();
+			mLockTimeOff = in.readLong();
 			in.readTypedList(mWakeLocks, WakeLockInfo.CREATOR);
 		}
 
@@ -325,13 +355,35 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			return mProcessName;
 		}
 		
-		protected void updateLockTime(WakeLockInfo lockInfo) {
+		protected void updateLockTime(WakeLockInfo lockInfo, boolean interactive) {
 			lockInfo.updateTime();
 			mLockTime += lockInfo.getTime();
+			
+			if (interactive) {
+				mLockTimeOn += lockInfo.getTime();
+				
+			} else {
+				mLockTimeOff += lockInfo.getTime();
+			}
+		}
+		
+		protected void updateLockTime(boolean interactive) {
+			for (WakeLockInfo lockInfo : mWakeLocks) {
+				updateLockTime(lockInfo, interactive);
+				lockInfo.updateTimestamp();
+			}
 		}
 		
 		public long getLockTime() {
 			return mLockTime;
+		}
+		
+		public long getLockTimeOn() {
+			return mLockTimeOn;
+		}
+		
+		public long getLockTimeOff() {
+			return mLockTimeOff;
 		}
 		
 		protected void addWakeLock(WakeLockInfo lockInfo) {
