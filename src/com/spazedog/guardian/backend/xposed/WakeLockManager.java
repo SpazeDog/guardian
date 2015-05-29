@@ -45,6 +45,10 @@ public class WakeLockManager {
 			if (service != null) {
 				mService = (IRWakeLockService) service.getReceiver();
 				
+				if(!mService.asBinder().pingBinder()) {
+					throw new Exception("Could not bind to WakeLock Service");
+				}
+				
 			} else {
 				throw new Exception("Could not bind to WakeLock Service");
 			}
