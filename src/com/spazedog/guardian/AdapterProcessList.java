@@ -39,7 +39,7 @@ import com.spazedog.guardian.scanner.ProcessEntityAndroid;
 
 public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.ViewHolder> implements OnClickListener {
 
-	public static class ViewHolder extends RecyclerView.ViewHolder {
+	protected static class ViewHolder extends RecyclerView.ViewHolder {
 		public TextView textLabel;
 		public TextView textName;
 		public TextView textUsage;
@@ -68,10 +68,10 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 		public void onItemClick(View view, Integer position);
 	}
 	
-	private WeakReference<Controller> mController;
-	private OnItemClickListener mListener;
-	private LruCache<String, Bitmap> mImageCache;
-	private IProcessList mProcessList;
+	protected WeakReference<Controller> mController;
+	protected OnItemClickListener mListener;
+	protected LruCache<String, Bitmap> mImageCache;
+	protected IProcessList mProcessList;
 	
 	public AdapterProcessList(Controller controller) {
 		mController = new WeakReference<Controller>(controller);
@@ -165,7 +165,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 		}
 	}
 	
-	private Bitmap loadIcon(IProcessEntity entity) {
+	protected Bitmap loadIcon(IProcessEntity entity) {
 		String cacheId = entity.getImportance() > 0 ? entity.loadPackageName(mController.get()) : "linux:process";
 		Bitmap bitmap = mImageCache.get(cacheId);
 		

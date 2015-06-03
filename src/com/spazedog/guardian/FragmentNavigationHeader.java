@@ -18,7 +18,7 @@ import com.spazedog.guardian.views.WidgetView.WidgetChangeListener;
 
 public class FragmentNavigationHeader extends AbstractFragment implements IServiceListener, WidgetChangeListener {
 
-	private static class ServiceHandler extends AbstractHandler<FragmentNavigationHeader> {
+	protected static class ServiceHandler extends AbstractHandler<FragmentNavigationHeader> {
 		private ProgressDialog mProgress;
 		
 		/*
@@ -66,8 +66,8 @@ public class FragmentNavigationHeader extends AbstractFragment implements IServi
 		}
 	}
 	
-	private SwitchWidget mSwitch;
-	private ServiceHandler mServiceHandler;
+	protected SwitchWidget mSwitch;
+	protected ServiceHandler mServiceHandler;
 	
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

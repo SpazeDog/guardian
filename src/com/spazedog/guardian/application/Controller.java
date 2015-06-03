@@ -47,7 +47,7 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 		public void onServiceChange(Integer status, Boolean sticky);
 	}
 	
-	private static class ServiceHandler extends AbstractHandler<Controller> {
+	protected static class ServiceHandler extends AbstractHandler<Controller> {
 		public ServiceHandler(Controller reference) {
 			super(reference);
 		}
@@ -66,13 +66,13 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 		}
 	}
 	
-	private ServiceHandler mServiceHandler;
-	private Set<IServiceListener> mServiceListeners = Collections.newSetFromMap(new WeakHashMap<IServiceListener, Boolean>());
-	private final Object mServiceLock = new Object();
-	private MonitorServiceControl mServiceControl;
+	protected ServiceHandler mServiceHandler;
+	protected Set<IServiceListener> mServiceListeners = Collections.newSetFromMap(new WeakHashMap<IServiceListener, Boolean>());
+	protected final Object mServiceLock = new Object();
+	protected MonitorServiceControl mServiceControl;
 	
-	private Settings mSettings;
-	private WakeLockManager mWakelockManager;
+	protected Settings mSettings;
+	protected WakeLockManager mWakelockManager;
 	
 	@Override
 	public void onCreate() {
@@ -207,7 +207,7 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 		return mServiceControl;
 	}
 	
-	private void invokeServiceListeners(int status, Boolean sticky) {
+	protected void invokeServiceListeners(int status, Boolean sticky) {
 		synchronized(mServiceListeners) {
 			if (mServiceListeners.size() > 0) {
 				String stateName = status == Status.STOPPED ? "STOPPED" : 

@@ -43,7 +43,7 @@ import com.spazedog.guardian.utils.AbstractThread;
 
 public class FragmentProcessList extends AbstractFragment implements OnItemClickListener {
 	
-	private static class UsageWorker extends AbstractThread<FragmentProcessList> {
+	protected static class UsageWorker extends AbstractThread<FragmentProcessList> {
 		IProcessList mCachedScanner;
 		
 		public UsageWorker(FragmentProcessList reference) {
@@ -91,7 +91,7 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		}
 	}
 	
-	private static class UsageHandler extends AbstractHandler<FragmentProcessList> {
+	protected static class UsageHandler extends AbstractHandler<FragmentProcessList> {
 		public UsageHandler(FragmentProcessList activity) {
 			super(activity);
 		}
@@ -108,14 +108,14 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		}
 	}
 	
-    private RecyclerView mRecyclerView;
-    private AdapterProcessList mRecyclerAdapter;
-    private LayoutManager mRecyclerLayoutManager;
+	protected RecyclerView mRecyclerView;
+	protected AdapterProcessList mRecyclerAdapter;
+	protected LayoutManager mRecyclerLayoutManager;
     
-    private UsageWorker mUsageWorker;
-    private UsageHandler mUsageHandler;
+	protected UsageWorker mUsageWorker;
+	protected UsageHandler mUsageHandler;
     
-    private IProcessList mSystemProcess;
+	protected IProcessList mSystemProcess;
     
     @Override
     public void onSaveInstanceState(Bundle outState) {

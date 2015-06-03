@@ -182,12 +182,12 @@ public class MonitorWorker {
 		};
 	}
 	
-	private Controller mController;
-	private Settings mSettings;
-	private boolean mIsInteractive;
-	private int mThreshold;
-	private Bundle mData;
-	private ThresholdMap mThresholdData = new ThresholdMap();
+	protected Controller mController;
+	protected Settings mSettings;
+	protected boolean mIsInteractive;
+	protected int mThreshold;
+	protected Bundle mData;
+	protected ThresholdMap mThresholdData = new ThresholdMap();
 	
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
@@ -288,7 +288,7 @@ public class MonitorWorker {
 		}
 	}
 	
-	private boolean checkProcessThreshold(IProcessList processList) {
+	protected boolean checkProcessThreshold(IProcessList processList) {
 		double cpuUsage = processList.getCpuUsage();
 		boolean valid = true;
 		
@@ -328,7 +328,7 @@ public class MonitorWorker {
 		return valid;
 	}
 	
-	private boolean checkProcessWakelocks(IProcessList processList) {
+	protected boolean checkProcessWakelocks(IProcessList processList) {
 		long lockTime = mSettings.getServiceWakeLockTime();
 		boolean valid = true;
 		
@@ -373,14 +373,14 @@ public class MonitorWorker {
 		return valid;
 	}
 	
-	private boolean isProcessImportant(int importance) {
+	protected boolean isProcessImportant(int importance) {
 		return mIsInteractive && 
 				(importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND ||
 						importance == RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE ||
 								importance == RunningAppProcessInfo.IMPORTANCE_VISIBLE);
 	}
 	
-	private void sendUserAlert(Set<Pair<IProcessEntity, ThresholdItem>> entityList) {
+	protected void sendUserAlert(Set<Pair<IProcessEntity, ThresholdItem>> entityList) {
 		Intent intent = new Intent(mController, ActivityLaunch.class);
 		intent.putExtra("tab.id", "tab_process_alerts");
 		

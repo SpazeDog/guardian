@@ -40,7 +40,7 @@ import com.spazedog.lib.rootfw4.RootFW;
 
 public class FragmentConfiguration extends AbstractFragment implements IServiceListener, WidgetChangeListener {
 	
-	private static class ServiceHandler extends AbstractHandler<FragmentConfiguration> {
+	protected static class ServiceHandler extends AbstractHandler<FragmentConfiguration> {
 		public ServiceHandler(FragmentConfiguration reference) {
 			super(reference);
 		}
@@ -56,21 +56,21 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		}
 	}
 	
-	private CheckBoxWidget mLinuxCheckBox;
-	private CheckBoxWidget mRootCheckBox;
-	private SpinnerWidget mIntervalSpinner;
-	private SpinnerWidget mEngineSpinner;
+	protected CheckBoxWidget mLinuxCheckBox;
+	protected CheckBoxWidget mRootCheckBox;
+	protected SpinnerWidget mIntervalSpinner;
+	protected SpinnerWidget mEngineSpinner;
 	
-	private SpinnerWidget mThresholdSpinnerInt;
-	private SpinnerWidget mThresholdSpinnerNon;
+	protected SpinnerWidget mThresholdSpinnerInt;
+	protected SpinnerWidget mThresholdSpinnerNon;
 	
-	private SpinnerWidget mActionSpinnerInt;
-	private SpinnerWidget mActionSpinnerNon;
+	protected SpinnerWidget mActionSpinnerInt;
+	protected SpinnerWidget mActionSpinnerNon;
 	
-	private CheckBoxWidget mWakelockActionCheckBox;
-	private SpinnerWidget mWakelockTimeSpinner;
+	protected CheckBoxWidget mWakelockActionCheckBox;
+	protected SpinnerWidget mWakelockTimeSpinner;
 	
-	private ServiceHandler mServiceHandler;
+	protected ServiceHandler mServiceHandler;
 
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

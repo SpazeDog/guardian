@@ -41,11 +41,11 @@ import com.spazedog.guardian.utils.AbstractFragmentDialog;
 
 public class ActivityLaunch extends AbstractActivity implements OnNavigationItemSelectedListener {
 	
-	private DrawerLayout mDrawerView;
-	private NavigationView mNavigationView;
-	private Toolbar mToolbarView;
-	private Toolbar mToolbarTopView;
-	private ViewGroup mWrapperView;
+	protected DrawerLayout mDrawerView;
+	protected NavigationView mNavigationView;
+	protected Toolbar mToolbarView;
+	protected Toolbar mToolbarTopView;
+	protected ViewGroup mWrapperView;
 	
 	@SuppressLint("NewApi")
 	@Override
@@ -169,7 +169,7 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 		}
 	}
 	
-	private void onNavigationClick(View view, boolean back) {
+	protected void onNavigationClick(View view, boolean back) {
 		if (!back && mDrawerView != null) {
 			if (mDrawerView.isDrawerOpen(GravityCompat.START)) {
 				mDrawerView.closeDrawer(GravityCompat.START);
@@ -200,7 +200,7 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 		return true;
 	}
 	
-	private void setupNavigation() {
+	protected void setupNavigation() {
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		Menu navigationMenu = mNavigationView.getMenu();
 		

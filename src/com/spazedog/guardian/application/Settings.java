@@ -55,7 +55,7 @@ public class Settings implements IControllerWrapper {
 		public void onSettingsChange(Type type);
 	}
 	
-	private static class SettingsHandler extends AbstractHandler<Settings> {
+	protected static class SettingsHandler extends AbstractHandler<Settings> {
 		public SettingsHandler(Settings reference) {
 			super(reference);
 		}
@@ -74,24 +74,24 @@ public class Settings implements IControllerWrapper {
 		}
 	}
 	
-	private SettingsHandler mSettingsHandler;
+	protected SettingsHandler mSettingsHandler;
 
-	private WeakReference<Controller> mController;
-	private SharedPreferences mPreferences;
+	protected WeakReference<Controller> mController;
+	protected SharedPreferences mPreferences;
 	
-	private volatile Boolean mSettingsServiceEnabled;
-	private volatile Integer mSettingsServiceInterval;
-	private volatile Integer mSettingsServiceThresholdOn;
-	private volatile Integer mSettingsServiceThresholdOff;
-	private volatile String mSettingsServiceActionOn;
-	private volatile String mSettingsServiceActionOff;
-	private volatile String mSettingsServiceEngine;
-	private volatile Boolean mSettingsRootEnabled;
-	private volatile Boolean mSettingsMonitorLinux;
-	private volatile Long mSettingsServiceWakeLockTime;
-	private volatile String mSettingsServiceWakeLockAction;
+	protected volatile Boolean mSettingsServiceEnabled;
+	protected volatile Integer mSettingsServiceInterval;
+	protected volatile Integer mSettingsServiceThresholdOn;
+	protected volatile Integer mSettingsServiceThresholdOff;
+	protected volatile String mSettingsServiceActionOn;
+	protected volatile String mSettingsServiceActionOff;
+	protected volatile String mSettingsServiceEngine;
+	protected volatile Boolean mSettingsRootEnabled;
+	protected volatile Boolean mSettingsMonitorLinux;
+	protected volatile Long mSettingsServiceWakeLockTime;
+	protected volatile String mSettingsServiceWakeLockAction;
 	
-	Set<ISettingsListener> mSettingsListeners = Collections.newSetFromMap(new WeakHashMap<ISettingsListener, Boolean>());
+	protected Set<ISettingsListener> mSettingsListeners = Collections.newSetFromMap(new WeakHashMap<ISettingsListener, Boolean>());
 	
 	public Settings(Controller controller) {
 		mSettingsHandler = new SettingsHandler(this);
@@ -296,7 +296,7 @@ public class Settings implements IControllerWrapper {
 		return mSettingsMonitorLinux;
 	}
 	
-	private void invokeServiceListeners(Type type) {
+	protected void invokeServiceListeners(Type type) {
 		synchronized(mSettingsListeners) {
 			if (mSettingsListeners.size() > 0) {
 				mSettingsHandler.obtainMessage(0, type).sendToTarget();

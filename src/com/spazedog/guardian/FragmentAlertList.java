@@ -39,9 +39,9 @@ import com.spazedog.guardian.utils.AbstractFragment;
 
 public class FragmentAlertList extends AbstractFragment {
 	
-    private RecyclerView mRecyclerView;
-    private AdapterAlertList mRecyclerAdapter;
-    private LayoutManager mRecyclerLayoutManager;
+	protected RecyclerView mRecyclerView;
+	protected AdapterAlertList mRecyclerAdapter;
+	protected LayoutManager mRecyclerLayoutManager;
 
 	@Override 
 	public void onCreate(Bundle savedInstanceState) {

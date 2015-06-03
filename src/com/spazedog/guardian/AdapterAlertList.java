@@ -42,7 +42,7 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 	 * 			Link this to FragmentProcessDetails
 	 */
 	
-	public static class ViewHolder extends RecyclerView.ViewHolder {
+	protected static class ViewHolder extends RecyclerView.ViewHolder {
 		public TextView textLabel;
 		public TextView textName;
 		public TextView textUsage;
@@ -62,9 +62,9 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 		}
 	}
 	
-	private WeakReference<Controller> mController;
-	private LruCache<String, Bitmap> mImageCache;
-	private EntityRow[] mRows;
+	protected WeakReference<Controller> mController;
+	protected LruCache<String, Bitmap> mImageCache;
+	protected EntityRow[] mRows;
 	
 	public AdapterAlertList(Controller controller) {
 		mController = new WeakReference<Controller>(controller);
@@ -105,7 +105,7 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 		notifyDataSetChanged();
 	}
 	
-	private Bitmap loadIcon(IProcessEntity entity) {
+	protected Bitmap loadIcon(IProcessEntity entity) {
 		String cacheId = entity.getImportance() > 0 ? entity.loadPackageName(mController.get()) : "linux:process";
 		Bitmap bitmap = mImageCache.get(cacheId);
 		

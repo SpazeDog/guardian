@@ -138,9 +138,9 @@ public abstract class MonitorService extends IntentService {
 			public void onServiceStateChanged(int state);
 		}
 		
-		private IMonitorServiceListener mListener;
-		private Controller mController;
-		private TimeoutHandler mTimeoutHandler;
+		protected IMonitorServiceListener mListener;
+		protected Controller mController;
+		protected TimeoutHandler mTimeoutHandler;
 		
 		public static MonitorServiceControl getInstance(Controller controller, String identifier) {
 			if ("persistent".equals(identifier)) {

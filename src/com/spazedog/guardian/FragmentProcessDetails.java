@@ -36,11 +36,11 @@ public class FragmentProcessDetails extends AbstractFragment {
 	 * 			This includes the information in the IProcessEntity interface.
 	 */
 	
-	private IProcessList mProcesses;
-	private IProcessEntity mEntity;
-	private RunningAppProcessInfo[] mRunningProcesses;
-	private Map<Integer, RunningAppProcessInfo> mRunningProcessesMap;
-	private Snackbar mSnackBar;
+	protected IProcessList mProcesses;
+	protected IProcessEntity mEntity;
+	protected RunningAppProcessInfo[] mRunningProcesses;
+	protected Map<Integer, RunningAppProcessInfo> mRunningProcessesMap;
+	protected Snackbar mSnackBar;
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
