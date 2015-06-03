@@ -32,8 +32,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
+import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.scanner.IProcess.IProcessList;
 import com.spazedog.guardian.scanner.IProcessEntity;
+import com.spazedog.guardian.scanner.ProcessEntityAndroid;
 
 public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.ViewHolder> implements OnClickListener {
 
@@ -41,6 +43,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 		public TextView textLabel;
 		public TextView textName;
 		public TextView textUsage;
+		public TextView textLock;
 		public TextView textImportance;
 		public ImageView image;
 		public View rootView;
@@ -55,6 +58,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 			textLabel = (TextView) view.findViewById(R.id.process_item_label);
 			textName = (TextView) view.findViewById(R.id.process_item_name);
 			textUsage = (TextView) view.findViewById(R.id.process_item_usage);
+			textLock = (TextView) view.findViewById(R.id.process_item_lock);
 			textImportance = (TextView) view.findViewById(R.id.process_item_importance);
 			image = (ImageView) view.findViewById(R.id.process_item_img);
 		}
@@ -107,6 +111,17 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 			
 			holder.rootView.setOnClickListener(this);
 			holder.rootView.setTag(position);
+			
+			ProcessLockInfo lockInfo = null;
+			if (entity.getImportance() > 0) {
+				lockInfo = ((ProcessEntityAndroid) entity).getProcessLockInfo();
+				
+				if (lockInfo != null) {
+					holder.textLock.setText(Common.convertTime(lockInfo.getLockTime()));
+				}
+			}
+			
+			holder.textLock.setVisibility( lockInfo != null ? View.VISIBLE : View.GONE );
 		}
 	}
 	

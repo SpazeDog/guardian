@@ -2,41 +2,91 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/backgroundColorSecondary">
+    android:layout_height="match_parent">
     
-    <com.spazedog.guardian.views.ExtendedFrameLayout
-        android:id="@+id/drawer_content_frame"
+    <!-- 
+    We need a Framelayout wrapper to get shadow below the Toolbar on pre-lollipop -->
+    <FrameLayout 
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_marginLeft="?attr/layoutMarginLeft"
-        android:layout_marginRight="?attr/layoutMarginRight"
-        android:layout_marginBottom="?attr/layoutMarginBottom"
-        android:layout_below="@+id/drawer_slider_frame"
-        android:layout_centerHorizontal="true"
-        android:paddingTop="?attr/layoutPaddingVertical"
-        android:paddingBottom="?attr/layoutPaddingVertical"
-        android:paddingLeft="?attr/layoutPaddingHorizontal"
-        android:paddingRight="?attr/layoutPaddingHorizontal"
-        app:layout_dimens_maxWidth="?attr/layoutMaxWidth" />
+        android:layout_below="@+id/toolbar_wrapper"
+        android:foreground="@drawable/bottom_shadow">
+
+		<android.support.v4.widget.DrawerLayout 
+		    android:id="@+id/drawer"
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent"
+		    android:background="?attr/backgroundColorSecondary">
+		    
+			<RelativeLayout 
+			    android:id="@+id/wrapper"
+			    android:layout_width="match_parent"
+			    android:layout_height="match_parent">
+	    
+			    <com.spazedog.guardian.views.ExtendedLinearLayout 
+			        android:orientation="horizontal"
+				    android:layout_width="match_parent"
+				    android:layout_height="match_parent"
+			        android:layout_centerHorizontal="true"
+				    app:layout_dimens_maxWidth="?attr/layoutMaxWidth">
+				    
+			        <View
+			            android:layout_height="match_parent"
+			            android:layout_width="14dp" />
+				    
+			        <FrameLayout 
+			            android:id="@+id/content"
+			            android:layout_width="0dp"
+			            android:layout_height="match_parent"
+			            android:layout_weight="1" />
+			        
+			        <View
+			            android:layout_height="match_parent"
+			            android:layout_width="14dp" />
+			        
+			    </com.spazedog.guardian.views.ExtendedLinearLayout>
+			    
+			</RelativeLayout>
+		    
+		    <android.support.design.widget.NavigationView
+		        android:id="@+id/navigation"
+		        android:layout_width="?attr/drawerWidth"
+		        android:layout_height="match_parent"
+		        android:layout_gravity="start"
+		        android:background="?attr/backgroundColorSecondary"
+		        android:elevation="4dp"
+		        app:menu="@menu/activity_launch_navigation_menu"
+		        app:headerLayout="@layout/activity_launch_navigation_header" />
+		    
+		</android.support.v4.widget.DrawerLayout>
+	
+	</FrameLayout>
     
-    <com.spazedog.guardian.views.ExtendedFrameLayout
-        android:id="@+id/drawer_slider_frame"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="?attr/layoutMarginLeft"
-        android:layout_marginRight="?attr/layoutMarginRight"
-        android:layout_marginTop="?attr/layoutMarginTop"
-        android:layout_marginBottom="?attr/drawerSpaceBetweenLayout"
-        android:layout_below="@+id/actionbar"
-        android:layout_centerHorizontal="true"
-        android:paddingTop="?attr/drawerPaddingVertical"
-        android:paddingBottom="?attr/drawerPaddingVertical"
-        android:paddingLeft="?attr/drawerPaddingHorizontal"
-        android:paddingRight="?attr/drawerPaddingHorizontal"
-        app:layout_dimens_maxWidth="?attr/layoutMaxWidth" /> 
+        android:id="@+id/toolbar_wrapper"
+        android:elevation="4dp"
+        android:background="?attr/appColorPrimary">
     
-    <include layout="@layout/toolbar_actionbar_embed"
-        android:id="@+id/actionbar" />
+	    <com.spazedog.guardian.views.ExtendedLinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+	        android:orientation="horizontal"
+	        android:layout_centerHorizontal="true"
+		    app:layout_dimens_maxWidth="?attr/layoutMaxWidth"
+		    android:layout_below="@+id/toolbarTop">
+		    
+			<android.support.v7.widget.Toolbar
+		        style="?attr/actionBarStyle"
+			    android:id="@+id/toolbar" />
+	        
+	    </com.spazedog.guardian.views.ExtendedLinearLayout>
+	    
+		<android.support.v7.widget.Toolbar
+		    style="?attr/actionBarStyle"
+		    android:id="@+id/toolbarTop" />
+	    
+	</RelativeLayout>
     
 </RelativeLayout>

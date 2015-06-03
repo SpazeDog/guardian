@@ -25,8 +25,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.AdapterProcessList.OnItemClickListener;
@@ -115,16 +117,9 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
     
     private IProcessList mSystemProcess;
     
-    private ViewGroup mActionBarMenu;
-    private View mMenuItemPlayPause;
-    
     @Override
     public void onSaveInstanceState(Bundle outState) {
     	outState.putParcelable("mSystemProcess", mSystemProcess);
-    	
-    	if (mMenuItemPlayPause != null) {
-    		outState.putBoolean("mMenuItemPlayPause", mMenuItemPlayPause.isActivated());
-    	}
     	
     	super.onSaveInstanceState(outState);
     }
@@ -132,6 +127,8 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 	@Override 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		setHasOptionsMenu(true);
 		
 		if (savedInstanceState != null) {
 			mSystemProcess = savedInstanceState.getParcelable("mSystemProcess");
@@ -153,20 +150,6 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		mRecyclerAdapter.setOnItemClickListener(this);
 		mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
 		mRecyclerView.setAdapter(mRecyclerAdapter);
-		
-		ActivityLaunch activity = (ActivityLaunch) getActivity();
-		LayoutInflater inflater = activity.getLayoutInflater();
-		mActionBarMenu = (ViewGroup) inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentProcessListMenu), null);
-		mMenuItemPlayPause = mActionBarMenu.findViewById(R.id.menu_playpause);
-		
-		mMenuItemPlayPause.setActivated( savedInstanceState != null && savedInstanceState.getBoolean("mMenuItemPlayPause", false) );
-		mMenuItemPlayPause.setOnClickListener(new OnClickListener(){
-			@Override
-			public void onClick(View v) {
-				v.setActivated(!v.isActivated());
-				toggleWorkerLock("pause", v.isActivated());
-			}
-		});
 	}
 	
 	@Override
@@ -176,10 +159,6 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		mUsageHandler = new UsageHandler(this);
 		mUsageWorker = new UsageWorker(this);
 		mUsageWorker.start();
-		
-		if (mMenuItemPlayPause.isActivated()) {
-			toggleWorkerLock("pause", true);
-		}
 	}
 	
 	@Override
@@ -198,17 +177,37 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 	}
 	
 	@Override
-	public void onStart() {
-		super.onStart();
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.fragment_process_list_menu, menu);
 		
-		((ActivityLaunch) getActivity()).addMenuItem(mActionBarMenu);
+		super.onCreateOptionsMenu(menu, inflater);
 	}
 	
 	@Override
-	public void onStop() {
-		super.onStop();
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_btn_pause:
+				setOptionsItemState(item, !item.isChecked());
+				
+				return true;
+		}
 		
-		((ActivityLaunch) getActivity()).removeMenuItem(mActionBarMenu);
+		return super.onOptionsItemSelected(item);
+	}
+	
+	private void setOptionsItemState(MenuItem item, boolean state) {
+		switch (item.getItemId()) {
+			case R.id.menu_btn_pause:
+				item.setChecked(state);
+				toggleWorkerLock("pause", state);
+				
+				if (state) {
+					item.setIcon(R.drawable.ic_play_circle_filled_white_24dp);
+					
+				} else {
+					item.setIcon(R.drawable.ic_pause_circle_filled_white_24dp);
+				}
+		}
 	}
 	
 	@Override
@@ -236,6 +235,6 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		bundle.putParcelable("processes", mSystemProcess);
 		fragment.setArguments(bundle);
 		
-		((ActivityLaunch) getActivity()).loadFragment(fragment, true);
+		((ActivityLaunch) getActivity()).loadFragment("Details", fragment, true);
 	}
 }

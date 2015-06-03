@@ -3,11 +3,12 @@
 <resources>
     
     <style name="App.ActionBar" />
-    
-    <style name="App.ActionBar.Panel">
+
+    <style name="App.ActionBar.Toolbar">
         <item name="android:layout_height">?attr/actionBarHeight</item>
         <item name="android:layout_width">match_parent</item>
-        <item name="android:background">?attr/actionBarCombatBackground</item>
+        <item name="android:background">?attr/appColorPrimary</item>
+        <item name="titleTextAppearance">?attr/textAppearanceActionBarTitle</item>
     </style>
 
     <style name="App.TextAppearance" parent="@style/TextAppearance.AppCompat">
@@ -78,6 +79,15 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:paddingTop">?attr/contentDividerPadding</item>
         <item name="android:paddingBottom">?attr/contentDividerPadding</item>
+    </style>
+    
+    <style name="App.Dialog" parent="@android:style/Theme.Dialog">
+	    <item name="android:windowFrame">@null</item>
+	    <item name="android:windowIsFloating">true</item>
+	    <item name="android:windowContentOverlay">@null</item>
+	    <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+	    <item name="android:windowBackground">@drawable/dialog_background</item>
+	    <item name="android:colorBackgroundCacheHint">@null</item>
     </style>
     
 </resources>

@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <dimen name="layoutMaxWidth">600dp</dimen>
+    <dimen name="layoutMaxWidth">640dp</dimen>
     <dimen name="actionBarMaxWidth">600dp</dimen>
-    
-    <!-- 
-    	actionBarHeight+8dp for API below 21 to account for
-    	the padding in the combat 9-patch actionbar shadow image
-     -->
-	<dimen name="actionBarHeight">82dp</dimen>
+	<dimen name="actionBarHeight">74dp</dimen>
 	
     <dimen name="actionBarMenuMargin">0dp</dimen>
     <dimen name="actionBarMenuPadding">24dp</dimen>
@@ -17,5 +12,6 @@
     
     <dimen name="contentPaddingVertical">7dp</dimen>
     <dimen name="contentPaddingHorizontal">21dp</dimen>
+    <dimen name="drawerWidth">360dp</dimen>
     
 </resources>

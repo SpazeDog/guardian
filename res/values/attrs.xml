@@ -117,23 +117,17 @@
     -->
     
     <!-- <attr name="actionBarStyle" format="reference" /> Exists -->
-    <attr name="actionBarStyleTitle" format="reference" />
     <attr name="cardViewStyle" format="reference" />
     <attr name="groupedLayoutStyle" format="reference" />
     <attr name="widgetViewStyle" format="reference" />
+    <attr name="dialogStyle" format="reference" />
     
     
     <!-- ====================================================
     	 	COMBAT DRAWABLES
     -->
     
-    <attr name="actionBarCombatBackground" format="reference" />
     <attr name="cardViewCombatBackground" format="reference" />
-    
-    <attr name="actionMenuIconKill" format="reference" />
-    <attr name="actionMenuIconDelete" format="reference" />
-    <attr name="actionMenuIconPlayPause" format="reference" />
-    <attr name="actionMenuIconNavigation" format="reference" />
     
     
     <!-- ====================================================
@@ -143,19 +137,13 @@
     <attr name="layout_activityLaunchLayout" format="reference" />
     <attr name="layout_activityLaunchMenuNavigation" format="reference" />
     <attr name="layout_fragmentConfigurationLayout" format="reference" />
-    <attr name="layout_fragmentNavigatorLayout" format="reference" />
     <attr name="layout_fragmentProcessDetailsLayout" format="reference" />
-    <attr name="layout_fragmentProcessDetailsMenu" format="reference" />
     <attr name="layout_fragmentProcessListLayout" format="reference" />
-    <attr name="layout_fragmentProcessListMenu" format="reference" />
     <attr name="layout_adapterProcessListItem" format="reference" />
     <attr name="layout_fragmentAlertListLayout" format="reference" />
-    <attr name="layout_fragmentAlertListMenu" format="reference" />
     <attr name="layout_adapterAlertListItem" format="reference" />
     <attr name="layout_viewGroupedLayout" format="reference" />
     <attr name="layout_viewWidgetLayout" format="reference" />
-    <attr name="layout_viewIndicatorLayout" format="reference" />
-    <attr name="layout_viewIndicatorWidget" format="reference" />
     <attr name="layout_viewCheckboxWidget" format="reference" />
     <attr name="layout_viewSwitchWidget" format="reference" />
     <attr name="layout_viewTextboxWidget" format="reference" />
@@ -188,6 +176,11 @@
         <attr name="layout_dimens_setWidthAsHeight" format="boolean" />
         <attr name="layout_dimens_setHeightAsWidth" format="boolean" />
     </declare-styleable>
+    
+    <declare-styleable name="ViewShadowOptions">
+        <attr name="layout_setShadow" format="boolean" />
+        <attr name="layout_setShadowOffset" format="integer" />
+    </declare-styleable> 
     
     <declare-styleable name="StringArrayOptions">
         <attr name="array_values" format="reference" />

@@ -19,7 +19,10 @@
 
 package com.spazedog.guardian;
 
+import java.io.File;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
@@ -160,6 +163,11 @@ public class Common {
 		return res;
 	}
 	
+	/*
+	 * ======================================================================
+	 * TODO: 
+	 * 			Deprecated, remove below
+	 */
 	public static int dipToPixels(Resources resources, float dips) {
 	    return (int) (dips * resources.getDisplayMetrics().density + 0.5f);
 	}
@@ -181,5 +189,74 @@ public class Common {
 		} else {
 			return pixelsToDip(context.getResources(), metrics.heightPixels);
 		}
+	}
+	/*
+	 * =====================================================================
+	 */
+	
+	public static int dipToPixels(float dips) {
+	    return (int) (dips * Resources.getSystem().getDisplayMetrics().density + 0.5f);
+	}
+	
+	public static float pixelsToDip(int pixels) {
+		return (float) (pixels / Resources.getSystem().getDisplayMetrics().density + 0.5f);
+	}
+	
+	public static boolean isDisplayLandscape() {
+		return Resources.getSystem().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+	}
+	
+	public static int getDisplayHeight() {
+		return Resources.getSystem().getDisplayMetrics().heightPixels;
+	}
+	
+	public static int getDisplayWidth() {
+		return Resources.getSystem().getDisplayMetrics().widthPixels;
+	}
+	
+	public static float getDisplaySW() {
+		int height = Resources.getSystem().getDisplayMetrics().heightPixels;
+		int width = Resources.getSystem().getDisplayMetrics().widthPixels;
+		
+		if (height >= width) {
+			return pixelsToDip(width);
+			
+		} else {
+			return pixelsToDip(height);
+		}
+	}
+	
+	public static float getDisplayLW() {
+		int height = Resources.getSystem().getDisplayMetrics().heightPixels;
+		int width = Resources.getSystem().getDisplayMetrics().widthPixels;
+		
+		if (height < width) {
+			return pixelsToDip(width);
+			
+		} else {
+			return pixelsToDip(height);
+		}
+	}
+	
+	public static boolean hasRoot() {
+		String[] locations = new String[]{"/system/xbin/su", "/system/bin/su"};
+		
+		for (String path : locations) {
+			if (new File(path).exists()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	@SuppressLint("DefaultLocale")
+	public static String convertTime(long millis) {
+		long seconds = millis / 1000;
+	    long s = seconds % 60;
+	    long m = (seconds / 60) % 60;
+	    long h = (seconds / (60 * 60)) % 24;
+	    
+	    return String.format("%d:%02d:%02d", h,m,s);
 	}
 }

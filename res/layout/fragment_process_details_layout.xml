@@ -85,6 +85,50 @@
 		
 		<LinearLayout
 			style="?attr/cardViewStyle"
+			android:id="@+id/process_group_wakelock"
+		    android:orientation="vertical"
+		    android:visibility="gone">
+			
+			<LinearLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="wrap_content"
+			    android:orientation="vertical"
+			    android:layout_marginLeft="?attr/contentPaddingHorizontal"
+			    android:layout_marginRight="?attr/contentPaddingHorizontal"
+			    android:layout_marginTop="?attr/contentPaddingVertical"
+			    android:layout_marginBottom="?attr/contentPaddingVertical">
+				
+			    <TextView 
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:textAppearance="?attr/textAppearanceTitleGrouped"
+			        android:text="WakeLock Time"
+			        android:layout_marginBottom="14dip" />
+			    
+				<com.spazedog.guardian.views.TextboxWidget
+				    android:id="@+id/process_item_wakelock_total"
+				    android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    app:title_text="Total" />
+				
+				<com.spazedog.guardian.views.TextboxWidget
+				    android:id="@+id/process_item_wakelock_on"
+				    android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    app:title_text="Interactive" />
+				
+				<com.spazedog.guardian.views.TextboxWidget
+				    android:id="@+id/process_item_wakelock_off"
+				    android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    app:title_text="Non-Interactive" />
+			    
+			</LinearLayout>
+		    
+		</LinearLayout>
+		
+		<LinearLayout
+			style="?attr/cardViewStyle"
 			android:id="@+id/process_group_caller"
 		    android:orientation="vertical"
 		    android:visibility="gone">

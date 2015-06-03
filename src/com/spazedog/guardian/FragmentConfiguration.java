@@ -67,6 +67,9 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 	private SpinnerWidget mActionSpinnerInt;
 	private SpinnerWidget mActionSpinnerNon;
 	
+	private CheckBoxWidget mWakelockActionCheckBox;
+	private SpinnerWidget mWakelockTimeSpinner;
+	
 	private ServiceHandler mServiceHandler;
 
 	@Override 
@@ -105,6 +108,27 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		
 		mActionSpinnerNon = (SpinnerWidget) view.findViewById(R.id.config_action_noninteractive);
 		mActionSpinnerNon.setSelectedValue( settings.getServiceAction(false) );
+		
+		mWakelockActionCheckBox = (CheckBoxWidget) view.findViewById(R.id.config_wakelock_action);
+		mWakelockActionCheckBox.setChecked( "release".equals(settings.getServiceWakeLockAction()) );
+		
+		mWakelockTimeSpinner = (SpinnerWidget) view.findViewById(R.id.config_wakelock_time);
+		mWakelockTimeSpinner.setSelectedValue( "" + settings.getServiceWakeLockTime() );
+		
+		/*
+		 * No Xposed Support
+		 */
+		if (getController().getWakeLockManager() == null) {
+			mWakelockActionCheckBox.setEnabled(false);
+			mWakelockTimeSpinner.setEnabled(false);
+		}
+		
+		/*
+		 * No root support
+		 */
+		if (!Common.hasRoot()) {
+			mRootCheckBox.setEnabled(false);
+		}
 	}
 	
 	@Override
@@ -121,6 +145,8 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		mThresholdSpinnerNon.setWidgetChangeListener(this);
 		mActionSpinnerInt.setWidgetChangeListener(this);
 		mActionSpinnerNon.setWidgetChangeListener(this);
+		mWakelockActionCheckBox.setWidgetChangeListener(this);
+		mWakelockTimeSpinner.setWidgetChangeListener(this);
 	}
 	
 	@Override
@@ -137,6 +163,8 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		mThresholdSpinnerNon.setWidgetChangeListener(null);
 		mActionSpinnerInt.setWidgetChangeListener(null);
 		mActionSpinnerNon.setWidgetChangeListener(null);
+		mWakelockActionCheckBox.setWidgetChangeListener(null);
+		mWakelockTimeSpinner.setWidgetChangeListener(null);
 	}
 	
 	@Override
@@ -166,6 +194,12 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 			
 		} else if (view == mLinuxCheckBox) {
 			getSettings().monitorLinux((Boolean) newValue);
+			
+		} else if (view == mWakelockActionCheckBox) {
+			getSettings().setServiceWakeLockAction((Boolean) newValue ? "release" : "notify");
+			
+		} else if (view == mWakelockTimeSpinner) {
+			getSettings().setServiceWakeLockTime(Long.valueOf( (String) newValue ));
 			
 		} else if (view == mRootCheckBox) {
 			if (((Boolean) newValue)) {

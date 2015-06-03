@@ -15,7 +15,8 @@
 		    android:orientation="vertical">
 		    
 		    <com.spazedog.guardian.views.GroupedLayout
-				style="?attr/groupedLayoutStyle">
+				style="?attr/groupedLayoutStyle"
+				app:title_text="General">
 		        
 		        <com.spazedog.guardian.views.SpinnerWidget
 		            style="?attr/widgetViewStyle"
@@ -54,23 +55,56 @@
 		    android:orientation="vertical">
 		    
 		    <com.spazedog.guardian.views.GroupedLayout
-				style="?attr/groupedLayoutStyle">
+				style="?attr/groupedLayoutStyle"
+				app:title_text="Alerting">
 		        
-		        <com.spazedog.guardian.views.SpinnerWidget
-		            style="?attr/widgetViewStyle"
-		            android:id="@+id/config_threshold_interactive"
-			        app:title_text="Interactive Threshold"
-			        app:summary_text="CPU alert threshold when the device is awake"
-			        app:array_names="@array/cpu_threshold_names"
-			        app:array_values="@array/cpu_threshold_values" />
+				<LinearLayout 
+				    android:layout_height="wrap_content"
+				    android:layout_width="match_parent"
+				    android:orientation="vertical">
 		        
-		        <com.spazedog.guardian.views.SpinnerWidget
-		            style="?attr/widgetViewStyle"
-		            android:id="@+id/config_threshold_noninteractive"
-			        app:title_text="Non-Interactive Threshold"
-			        app:summary_text="CPU alert threshold when the device is asleep"
-			        app:array_names="@array/cpu_threshold_names"
-			        app:array_values="@array/cpu_threshold_values" />
+			        <com.spazedog.guardian.views.SpinnerWidget
+			            style="?attr/widgetViewStyle"
+			            android:id="@+id/config_threshold_interactive"
+				        app:title_text="Interactive Threshold"
+				        app:array_names="@array/cpu_threshold_names"
+				        app:array_values="@array/cpu_threshold_values"
+				        android:paddingBottom="0dp" />
+			        
+			        <com.spazedog.guardian.views.SpinnerWidget
+			            style="?attr/widgetViewStyle"
+			            android:id="@+id/config_threshold_noninteractive"
+				        app:title_text="Non-Interactive Threshold"
+				        app:summary_text="CPU alert threshold"
+				        app:array_names="@array/cpu_threshold_names"
+				        app:array_values="@array/cpu_threshold_values"
+				        android:paddingTop="0dp" />
+			        
+			    </LinearLayout>
+			    
+				<LinearLayout 
+				    android:layout_height="wrap_content"
+				    android:layout_width="match_parent"
+				    android:orientation="vertical">
+			        
+			        <com.spazedog.guardian.views.SpinnerWidget
+			            style="?attr/widgetViewStyle"
+			            android:id="@+id/config_action_interactive"
+				        app:title_text="Interactive Action"
+				        app:array_names="@array/service_action_names"
+				        app:array_values="@array/service_action_values"
+				        android:paddingBottom="0dp" />
+			        
+			        <com.spazedog.guardian.views.SpinnerWidget
+			            style="?attr/widgetViewStyle"
+			            android:id="@+id/config_action_noninteractive"
+				        app:title_text="Non-Interactive Action"
+				        app:summary_text="Action to take when a process exceeds the cpu threshold"
+				        app:array_names="@array/service_action_names"
+				        app:array_values="@array/service_action_values"
+				        android:paddingTop="0dp" />
+				    
+				</LinearLayout>
 		        
 		    </com.spazedog.guardian.views.GroupedLayout>
 		    
@@ -81,23 +115,22 @@
 		    android:orientation="vertical">
 		    
 		    <com.spazedog.guardian.views.GroupedLayout
-				style="?attr/groupedLayoutStyle">
+				style="?attr/groupedLayoutStyle"
+				app:title_text="WakeLocks">
 		        
 		        <com.spazedog.guardian.views.SpinnerWidget
 		            style="?attr/widgetViewStyle"
-		            android:id="@+id/config_action_interactive"
-			        app:title_text="Interactive Action"
-			        app:summary_text="Action to take when the device is awake"
-			        app:array_names="@array/service_action_names"
-			        app:array_values="@array/service_action_values" />
+		            android:id="@+id/config_wakelock_time"
+			        app:title_text="Allowed Time"
+			        app:summary_text="Time that wakelocks are allowed to be kept alive in non-interactive state"
+			        app:array_names="@array/interval_names"
+			        app:array_values="@array/interval_values" />
 		        
-		        <com.spazedog.guardian.views.SpinnerWidget
+		        <com.spazedog.guardian.views.CheckBoxWidget
 		            style="?attr/widgetViewStyle"
-		            android:id="@+id/config_action_noninteractive"
-			        app:title_text="Non-Interactive Action"
-			        app:summary_text="Action to take when the device is asleep"
-			        app:array_names="@array/service_action_names"
-			        app:array_values="@array/service_action_values" />
+		            android:id="@+id/config_wakelock_action"
+			        app:title_text="Automatic Release"
+			        app:summary_text="Release wakelocks automatically when they exceeds their allowed time" />
 		        
 		    </com.spazedog.guardian.views.GroupedLayout>
 		    

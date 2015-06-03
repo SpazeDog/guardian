@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.spazedog.guardian.views.GroupedLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+	style="?attr/groupedLayoutStyle">
+	
+	<com.spazedog.guardian.views.SwitchWidget
+		style="?attr/widgetViewStyle"
+		android:id="@+id/service_switch"
+ 		app:title_text="Monitoring Service"
+ 		app:summary_text="Turn monitoring on/off" />
+    
+</com.spazedog.guardian.views.GroupedLayout>

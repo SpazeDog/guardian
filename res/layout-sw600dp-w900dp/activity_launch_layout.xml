@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+    <!-- 
+    We need a Framelayout wrapper to get shadow below the Toolbar on pre-lollipop -->
+    <FrameLayout 
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/toolbar_wrapper"
+        android:foreground="@drawable/bottom_shadow">
+    
+	    <RelativeLayout 
+	    	android:layout_width="match_parent"
+	    	android:layout_height="match_parent"
+	        android:background="?attr/backgroundColorSecondary">
+	    
+		    <com.spazedog.guardian.views.ExtendedLinearLayout 
+		        android:orientation="horizontal"
+			    android:layout_width="match_parent"
+			    android:layout_height="match_parent"
+		        android:layout_centerHorizontal="true"
+			    app:layout_dimens_maxWidth="?attr/layoutMaxWidth">
+		
+		        <View
+		            android:layout_height="match_parent"
+		            android:layout_width="14dp" />
+			    
+		        <!-- 
+		        In Android 5.0+ this view creates a shadow that does not go away by setting elevation to 0dp. 
+		        However, wrapping it in another view hides this shadow -->
+		        <FrameLayout  
+			        android:layout_width="?attr/drawerWidth"
+			        android:layout_height="match_parent">
+				    <android.support.design.widget.NavigationView
+				        android:id="@+id/navigation"
+				        android:layout_width="match_parent"
+				        android:layout_height="match_parent"
+				        app:menu="@menu/activity_launch_navigation_menu"
+				        app:headerLayout="@layout/activity_launch_navigation_header" />
+			    </FrameLayout >
+			    
+		        <View
+		            android:layout_height="match_parent"
+		            android:layout_width="14dp" />
+			    
+		        <FrameLayout 
+		            android:id="@+id/content"
+	                android:layout_width="0dp"
+	                android:layout_height="match_parent"
+	                android:layout_weight="1" />
+		        
+		        <View
+		            android:layout_height="match_parent"
+		            android:layout_width="14dp" />
+		        
+		    </com.spazedog.guardian.views.ExtendedLinearLayout>
+		    
+		</RelativeLayout>
+		
+	</FrameLayout>
+    
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar_wrapper"
+        android:elevation="4dp"
+        android:background="?attr/appColorPrimary">
+    
+	    <com.spazedog.guardian.views.ExtendedLinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+	        android:orientation="horizontal"
+	        android:layout_centerHorizontal="true"
+		    app:layout_dimens_maxWidth="900dp"
+		    android:layout_below="@+id/toolbarTop">
+		    
+			<android.support.v7.widget.Toolbar
+		        style="?attr/actionBarStyle"
+			    android:id="@+id/toolbar" />
+	        
+	    </com.spazedog.guardian.views.ExtendedLinearLayout>
+	    
+		<android.support.v7.widget.Toolbar
+		    style="?attr/actionBarStyle"
+		    android:id="@+id/toolbarTop" />
+	    
+	</RelativeLayout>
+    
+</RelativeLayout>

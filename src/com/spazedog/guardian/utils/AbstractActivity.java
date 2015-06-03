@@ -23,7 +23,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.application.Controller.IControllerWrapper;
@@ -32,7 +32,7 @@ import com.spazedog.guardian.application.Settings.ISettingsWrapper;
 import com.spazedog.guardian.utils.ActivityLogic.IActivityLogic;
 import com.spazedog.guardian.utils.ActivityLogic.IActivityLogicFragment;
 
-public abstract class AbstractActivity extends ActionBarActivity implements IActivityLogic, IControllerWrapper, ISettingsWrapper {
+public abstract class AbstractActivity extends AppCompatActivity implements IActivityLogic, IControllerWrapper, ISettingsWrapper {
 	
 	private ActivityLogic mLogic;
 	

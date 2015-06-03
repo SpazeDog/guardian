@@ -21,28 +21,31 @@ package com.spazedog.guardian;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.DrawerLayout.DrawerListener;
-import android.view.LayoutInflater;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.spazedog.guardian.utils.AbstractActivity;
 import com.spazedog.guardian.utils.AbstractFragmentDialog;
 
-public class ActivityLaunch extends AbstractActivity {
+public class ActivityLaunch extends AbstractActivity implements OnNavigationItemSelectedListener {
 	
-	private ViewGroup mActionBarNavigation;
-	private ViewGroup mActionBarContent;
-	private TextView mActionBarTitle;
-	
-	private DrawerLayout mDrawerLayout;
+	private DrawerLayout mDrawerView;
+	private NavigationView mNavigationView;
+	private Toolbar mToolbarView;
+	private Toolbar mToolbarTopView;
+	private ViewGroup mWrapperView;
 	
 	@SuppressLint("NewApi")
 	@Override
@@ -51,17 +54,24 @@ public class ActivityLaunch extends AbstractActivity {
 		
 		setContentView( Common.resolveAttr(this, R.attr.layout_activityLaunchLayout) );
 		
-		mActionBarNavigation = (ViewGroup) findViewById(R.id.toolbar_navigation);
-		mActionBarContent = (ViewGroup) findViewById(R.id.toolbar_content);
-		mActionBarTitle = (TextView) findViewById(R.id.toolbar_title);
-		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		mDrawerView = (DrawerLayout) findViewById(R.id.drawer);
+		mNavigationView = (NavigationView) findViewById(R.id.navigation);
+		mToolbarView = (Toolbar) findViewById(R.id.toolbar);
+		mToolbarTopView = (Toolbar) findViewById(R.id.toolbarTop);
+		mWrapperView = (ViewGroup) findViewById(R.id.wrapper);
 		
-		if (mDrawerLayout != null) {
+		if (mToolbarTopView == null) {
+			mToolbarTopView = mToolbarView;
+		}
+		
+		setSupportActionBar(mToolbarView);
+		
+		if (mDrawerView != null) {
 			if (android.os.Build.VERSION.SDK_INT < 21) {
-				mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+				mDrawerView.setDrawerShadow(R.drawable.right_shadow, GravityCompat.START);
 			}
 			
-			mDrawerLayout.setDrawerListener(new DrawerListener(){
+			mDrawerView.setDrawerListener(new DrawerListener(){
 				@Override
 				public void onDrawerClosed(View arg0) {
 					sendMessage("activity.drawer_opened", false, true);
@@ -73,21 +83,16 @@ public class ActivityLaunch extends AbstractActivity {
 				}
 
 				@Override
-				public void onDrawerSlide(View arg0, float arg1) {}
+				public void onDrawerSlide(View drawerView, float slideOffset) {
+					mWrapperView.setTranslationX((slideOffset * drawerView.getWidth()) / 2);
+				}
 
 				@Override
 				public void onDrawerStateChanged(int arg0) {}
 			});
 		}
 		
-		FragmentManager manager = getSupportFragmentManager();
-		
-		if (manager.findFragmentById(R.id.drawer_slider_frame) == null) {
-			manager
-		    	.beginTransaction()
-		    	.replace(R.id.drawer_slider_frame, new FragmentNavigator(), "FragmentNavigator")
-		    	.commit();
-		}
+		mNavigationView.setNavigationItemSelectedListener(this);
 	}
 	
     @Override
@@ -95,36 +100,44 @@ public class ActivityLaunch extends AbstractActivity {
         super.onPostCreate(savedInstanceState);
         
         Common.setTypeFace(getWindow().getDecorView(), Common.TYPEFACE.DefaultRegular(this));
+        
+		FragmentManager fragmentManager = getSupportFragmentManager();
+		if (fragmentManager.findFragmentById(R.id.content) == null) {
+			Menu navigationMenu = mNavigationView.getMenu();
+			
+			if (navigationMenu.size() > 0) {
+				onNavigationItemSelected(navigationMenu.getItem(0));
+			}
+		}
     }
     
     @Override
     protected void onResume() {
     	super.onResume();
     	
-    	if (mDrawerLayout != null) {
-    		sendMessage("activity.drawer_opened", mDrawerLayout.isDrawerOpen(GravityCompat.START), true);
+    	if (mDrawerView != null) {
+    		sendMessage("activity.drawer_opened", mDrawerView.isDrawerOpen(GravityCompat.START), true);
     	}
     }
     
     public Fragment getCurrentFragment() {
-		return getSupportFragmentManager().findFragmentById(R.id.drawer_content_frame);
+		return getSupportFragmentManager().findFragmentById(R.id.content);
     }
 	
-	public void loadFragment(Fragment fragment, Boolean backStack) {
+	public void loadFragment(String tag, Fragment fragment, Boolean backStack) {
 		FragmentManager manager = getSupportFragmentManager();
-		String fragmentName = fragment.getClass().getSimpleName();
 		
-		if (!backStack || manager.findFragmentByTag(fragmentName) == null) {
+		if (!backStack || manager.findFragmentByTag(tag) == null) {
 			if (backStack && fragment instanceof AbstractFragmentDialog && Common.getDisplaySW(this) >= 600f) {
 				Bundle bundle = fragment.getArguments();
 				bundle.putBoolean("dialog", true);
 				fragment.setArguments(bundle);
 				
-				((AbstractFragmentDialog) fragment).show(manager, fragmentName);
+				((AbstractFragmentDialog) fragment).show(manager, tag);
 				
 			} else {
 				FragmentTransaction transaction = manager.beginTransaction();
-				transaction.replace(R.id.drawer_content_frame, fragment, fragmentName);
+				transaction.replace(R.id.content, fragment, tag);
 				
 				if (backStack) {
 					transaction.addToBackStack(null);
@@ -136,16 +149,16 @@ public class ActivityLaunch extends AbstractActivity {
 				transaction.commit();
 			}
 			
-			if (mDrawerLayout != null) {
-				mDrawerLayout.closeDrawers();
+			if (mDrawerView != null) {
+				mDrawerView.closeDrawers();
 			}
 		}
 	}
 	
 	@Override
 	public void setTitle(CharSequence title) {
-		if (mActionBarTitle != null) {
-			mActionBarTitle.setText(title);
+		if (mToolbarView != null) {
+			mToolbarView.setTitle(title);
 		}
 	}
 	
@@ -156,52 +169,73 @@ public class ActivityLaunch extends AbstractActivity {
 		}
 	}
 	
-	private void onNavigationClick(View view) {
-		if (!view.isActivated() && mDrawerLayout != null) {
-			mDrawerLayout.openDrawer(GravityCompat.START);
+	private void onNavigationClick(View view, boolean back) {
+		if (!back && mDrawerView != null) {
+			if (mDrawerView.isDrawerOpen(GravityCompat.START)) {
+				mDrawerView.closeDrawer(GravityCompat.START);
+				
+			} else {
+				mDrawerView.openDrawer(GravityCompat.START);
+			}
 			
-		} else if (view.isActivated()) {
+		} else if (back) {
 			FragmentManager manager = getSupportFragmentManager();
 			manager.popBackStack();
 		}
 	}
+
+	@Override
+	public boolean onNavigationItemSelected(MenuItem item) {
+		Fragment fragment = null;
+		
+		switch (item.getItemId()) {
+			case R.id.navigation_process_overview: fragment = new FragmentProcessList(); break;
+			case R.id.navigation_recent_alerts: fragment = new FragmentAlertList(); break;
+			case R.id.navigation_configuration: fragment = new FragmentConfiguration(); break;
+			default: return false;
+		}
+
+		loadFragment("" + item.getTitleCondensed(), fragment, false);
+		
+		return true;
+	}
 	
 	private void setupNavigation() {
-		FragmentManager manager = getSupportFragmentManager();
+		FragmentManager fragmentManager = getSupportFragmentManager();
+		Menu navigationMenu = mNavigationView.getMenu();
 		
-		if (mDrawerLayout != null || manager.getBackStackEntryCount() > 0) {
-			View view = null;
+		for (int i=0; i < navigationMenu.size(); i++) {
+			MenuItem item = navigationMenu.getItem(i);
+			boolean isLoaded = fragmentManager.findFragmentByTag("" + item.getTitleCondensed()) != null;
 			
-			if (mActionBarNavigation.getChildCount() == 0) {
-				LayoutInflater inflater = getLayoutInflater();
-				view = inflater.inflate(Common.resolveAttr(this, R.attr.layout_activityLaunchMenuNavigation), mActionBarNavigation, false);
-				view.setOnClickListener(new OnClickListener(){
-					@Override
-					public void onClick(View v) {
-						onNavigationClick(v);
-					}
-				});
+			if (isLoaded) {
+				item.setChecked(true);
+				mToolbarView.setTitle("" + item.getTitle());
 				
-				mActionBarNavigation.addView(view);
-				
-			} else {
-				view = mActionBarNavigation.getChildAt(0);
+				break;
 			}
+		}
+		
+		if (fragmentManager.getBackStackEntryCount() > 0) {
+			mToolbarTopView.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+			mToolbarTopView.setNavigationOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					onNavigationClick(v, true);
+				}
+			});
 			
-			view.setActivated(manager.getBackStackEntryCount() > 0);
-			
-			mActionBarNavigation.setVisibility(View.VISIBLE);
+		} else if (mDrawerView != null) {
+			mToolbarTopView.setNavigationIcon(R.drawable.ic_menu_white_24dp);
+			mToolbarTopView.setNavigationOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					onNavigationClick(v, false);
+				}
+			});
 			
 		} else {
-			mActionBarNavigation.setVisibility(View.GONE);
+			mToolbarTopView.setNavigationIcon(null);
 		}
-	}
-	
-	public void addMenuItem(View view) {
-		mActionBarContent.addView(view);
-	}
-	
-	public void removeMenuItem(View view) {
-		mActionBarContent.removeView(view);
 	}
 }

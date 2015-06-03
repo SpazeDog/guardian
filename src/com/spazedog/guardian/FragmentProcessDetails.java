@@ -3,24 +3,27 @@ package com.spazedog.guardian;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.spazedog.guardian.application.Settings;
+import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.scanner.IProcess.IProcessList;
 import com.spazedog.guardian.scanner.IProcessEntity;
+import com.spazedog.guardian.scanner.ProcessEntityAndroid;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.views.TextboxWidget;
 import com.spazedog.lib.rootfw4.RootFW;
@@ -31,18 +34,13 @@ public class FragmentProcessDetails extends AbstractFragment {
 	 * TODO: 	
 	 * 			Add option to update all information using an actionbar update button. 
 	 * 			This includes the information in the IProcessEntity interface.
-	 * 
-	 * 			Create details about wakelocks.
-	 * 			Basics might also be added to AdapterProcessList.
 	 */
 	
 	private IProcessList mProcesses;
 	private IProcessEntity mEntity;
 	private RunningAppProcessInfo[] mRunningProcesses;
 	private Map<Integer, RunningAppProcessInfo> mRunningProcessesMap;
-	
-    private ViewGroup mActionBarMenu;
-    private View mMenuItemKill;
+	private Snackbar mSnackBar;
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
@@ -57,6 +55,8 @@ public class FragmentProcessDetails extends AbstractFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		setHasOptionsMenu(true);
+		
 		if (savedInstanceState != null) {
 			mRunningProcesses = (RunningAppProcessInfo[]) savedInstanceState.getParcelableArray("mRunningProcesses");
 		}
@@ -70,26 +70,6 @@ public class FragmentProcessDetails extends AbstractFragment {
 		
 		mProcesses = getArguments().getParcelable("processes");
 		mEntity = getArguments().getParcelable("entity");
-		
-		LayoutInflater inflater = getActivity().getLayoutInflater();
-		mActionBarMenu = (ViewGroup) inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentProcessDetailsMenu), null);
-		mMenuItemKill = mActionBarMenu.findViewById(R.id.menu_kill);
-		mMenuItemKill.setOnClickListener(new OnClickListener(){
-			@Override
-			public void onClick(View v) {
-				killEntity();
-			}
-		});
-		
-		Settings settings = getSettings();
-		int importance = mEntity.getImportance();
-		boolean killable = settings.isRootEnabled() || 
-				(importance > 0 && 
-						importance != RunningAppProcessInfo.IMPORTANCE_FOREGROUND && 
-						importance != RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE && 
-						importance != RunningAppProcessInfo.IMPORTANCE_VISIBLE);
-		
-		mMenuItemKill.setEnabled(killable);
 	}
 
 	@Override 
@@ -127,6 +107,49 @@ public class FragmentProcessDetails extends AbstractFragment {
 		}
 	}
 	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		Settings settings = getSettings();
+		int importance = mEntity.getImportance();
+		boolean killable = settings.isRootEnabled() || 
+				(importance > 0 && 
+						importance != RunningAppProcessInfo.IMPORTANCE_FOREGROUND && 
+						importance != RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE && 
+						importance != RunningAppProcessInfo.IMPORTANCE_VISIBLE);
+		
+		if (killable) {
+			inflater.inflate(R.menu.fragment_process_details_menu, menu);
+		}
+		
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_btn_remove:
+				killEntity();
+				
+				return true;
+		}
+		
+		return super.onOptionsItemSelected(item);
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+		/*
+		 * Like most in the support libraries, this does not work properly. 
+		 * It should go away by it's own, but it does not.
+		 */
+		if (mSnackBar != null) {
+			mSnackBar.dismiss();
+			mSnackBar = null;
+		}
+	}
+	
 	/*
 	 * TODO: 
 	 * 			This information should be build into the IProcessEntity interface.
@@ -144,6 +167,27 @@ public class FragmentProcessDetails extends AbstractFragment {
 			if (appInfo.importanceReasonPid > 0) {
 				createAndroidCaller(view, appInfo);
 			}
+		}
+		
+		createAndroidWakelock(view);
+	}
+	
+	public void createAndroidWakelock(View view) {
+		ProcessEntityAndroid androidEntity = (ProcessEntityAndroid) mEntity;
+		ProcessLockInfo lockInfo = androidEntity.getProcessLockInfo();
+		
+		if (lockInfo != null) {
+			View groupView = view.findViewById(R.id.process_group_wakelock);
+			groupView.setVisibility(View.VISIBLE);
+			
+			TextboxWidget totalLockView = (TextboxWidget) view.findViewById(R.id.process_item_wakelock_total);
+			totalLockView.setText( Common.convertTime(lockInfo.getLockTime()) );
+			
+			TextboxWidget onLockView = (TextboxWidget) view.findViewById(R.id.process_item_wakelock_on);
+			onLockView.setText( Common.convertTime(lockInfo.getLockTimeOn()) );
+			
+			TextboxWidget offLockView = (TextboxWidget) view.findViewById(R.id.process_item_wakelock_off);
+			offLockView.setText( Common.convertTime(lockInfo.getLockTimeOff()) );
 		}
 	}
 	
@@ -171,6 +215,7 @@ public class FragmentProcessDetails extends AbstractFragment {
 	/*
 	 * Return a map of running android processes which can be accessed by their pid's
 	 */
+	@SuppressLint("UseSparseArrays")
 	public Map<Integer, RunningAppProcessInfo> getRunningProcesses() {
 		if (mRunningProcessesMap == null) {
 			mRunningProcessesMap = new HashMap<Integer, RunningAppProcessInfo>();
@@ -183,26 +228,11 @@ public class FragmentProcessDetails extends AbstractFragment {
 		return mRunningProcessesMap;
 	}
 	
-	@Override
-	public void onStart() {
-		super.onStart();
-		
-		((ActivityLaunch) getActivity()).addMenuItem(mActionBarMenu);
-	}
-	
-	@Override
-	public void onStop() {
-		super.onStop();
-		
-		((ActivityLaunch) getActivity()).removeMenuItem(mActionBarMenu);
-	}
-	
 	public void killEntity() {
-		new AlertDialog.Builder(getActivity())
-			.setTitle("Force Close")
-			.setMessage("Are you sure that you want to force close this process?")
-			.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int which) { 
+		mSnackBar = Snackbar.make(getView(), "Are you sure that you want to force close this process?", Snackbar.LENGTH_LONG)
+			.setAction("Force Close", new OnClickListener(){
+				@Override
+				public void onClick(View v) {
 		        	Settings settings = getSettings();
 
 					if (settings.isRootEnabled() && RootFW.connect() && RootFW.isRoot()) {
@@ -214,12 +244,9 @@ public class FragmentProcessDetails extends AbstractFragment {
 					}
 					
 					getFragmentManager().popBackStackImmediate();
-		        }
-		     })
-		    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int which) {}
-		     })
-		    .setIcon(android.R.drawable.ic_dialog_alert)
-		    .show();
+				}
+			});
+		
+		mSnackBar.show();
 	}
 }

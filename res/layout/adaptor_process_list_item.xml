@@ -2,7 +2,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical" >
     
@@ -59,6 +59,16 @@
 	        android:layout_height="wrap_content"
 	        android:textAppearance="?attr/textAppearance"
 	        android:layout_alignParentRight="true"
+	        android:paddingLeft="10dp" />
+	    
+	    <TextView
+	        android:id="@+id/process_item_lock"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textAppearance="?attr/textAppearanceSummary"
+	        android:layout_alignParentRight="true"
+	        android:layout_below="@id/process_item_name"
+	        android:paddingTop="10dp"
 	        android:paddingLeft="10dp" />
 	    
 		<View

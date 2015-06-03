@@ -92,25 +92,19 @@
 	    <!-- ====================================================
 	    	 	THEME STYLE REFERENCES
 	    -->
-	    
-	    <item name="actionBarStyleTitle">@style/App.ActionBar.Panel</item>
-	    <item name="actionBarStyle">@style/App.ActionBar.Panel</item>
+
+	    <item name="actionBarStyle">@style/App.ActionBar.Toolbar</item>
 	    <item name="cardViewStyle">@style/App.View.CardView</item>
 	    <item name="groupedLayoutStyle">@style/App.View.GroupedLayout</item>
 	    <item name="widgetViewStyle">@style/App.View.WidgetView</item>
+	    <item name="dialogStyle">@style/App.Dialog</item>
 	    
 	    
 	    <!-- ====================================================
 	    	 	COMBAT DRAWABLES
 	    -->
 	    
-	    <item name="actionBarCombatBackground">@drawable/actionbar_combat_shadow</item>
 	    <item name="cardViewCombatBackground">@drawable/cardview_shadow</item>
-	    
-	    <item name="actionMenuIconKill">@drawable/menu_kill_item_selector</item>
-	    <item name="actionMenuIconDelete">@drawable/menu_delete_item_selector</item>
-	    <item name="actionMenuIconPlayPause">@drawable/menu_playpause_item_selector</item>
-	    <item name="actionMenuIconNavigation">@drawable/menu_navigation_item_selector</item>
 	    
 	    
 	    <!-- ====================================================
@@ -118,21 +112,14 @@
 	    -->
 	    
 	    <item name="layout_activityLaunchLayout">@layout/activity_launch_layout</item>
-	    <item name="layout_activityLaunchMenuNavigation">@layout/activity_launch_menu_navigation</item>
 	    <item name="layout_fragmentConfigurationLayout">@layout/fragment_configuration_layout</item>
-	    <item name="layout_fragmentNavigatorLayout">@layout/fragment_navigator_layout</item>
 	    <item name="layout_fragmentProcessDetailsLayout">@layout/fragment_process_details_layout</item>
-	    <item name="layout_fragmentProcessDetailsMenu">@layout/fragment_process_details_menu</item>
 	    <item name="layout_fragmentProcessListLayout">@layout/fragment_process_list_layout</item>
-	    <item name="layout_fragmentProcessListMenu">@layout/fragment_process_list_menu</item>
 	    <item name="layout_adapterProcessListItem">@layout/adaptor_process_list_item</item>
 	    <item name="layout_fragmentAlertListLayout">@layout/fragment_alert_list_layout</item>
-	    <item name="layout_fragmentAlertListMenu">@layout/fragment_alert_list_menu</item>
 	    <item name="layout_adapterAlertListItem">@layout/adaptor_alert_list_item</item>
 	    <item name="layout_viewGroupedLayout">@layout/view_grouped_layout</item>
 	    <item name="layout_viewWidgetLayout">@layout/view_widget_layout</item>
-	    <item name="layout_viewIndicatorLayout">@layout/view_indicator_layout</item>
-	    <item name="layout_viewIndicatorWidget">@layout/view_indicator_widget</item>
 	    <item name="layout_viewCheckboxWidget">@layout/view_checkbox_widget</item>
 	    <item name="layout_viewSwitchWidget">@layout/view_switch_widget</item>
 	    <item name="layout_viewTextboxWidget">@layout/view_textbox_widget</item>

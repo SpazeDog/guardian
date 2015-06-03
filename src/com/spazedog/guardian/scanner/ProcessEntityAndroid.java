@@ -175,6 +175,33 @@ public class ProcessEntityAndroid extends ProcessEntity {
 		return mEntityPackageLabel;
 	}
 	
+	@Override
+	public int compareTo(IProcessEntity sibling) {
+		int comp = Double.compare(sibling.getCpuUsage(), getCpuUsage());
+		
+		if (comp == 0) {
+			if (comp == 0 && mProcessLockInfo != null && sibling.getImportance() > 0) {
+				ProcessLockInfo siblingLockInfo = ((ProcessEntityAndroid) sibling).mProcessLockInfo;
+				
+				if (siblingLockInfo != null) {
+					comp = (int) (siblingLockInfo.getLockTime() - mProcessLockInfo.getLockTime());
+					
+				} else {
+					comp = -1;
+				}
+				
+			} else if (sibling.getImportance() > 0 && ((ProcessEntityAndroid) sibling).mProcessLockInfo != null) {
+				comp = 1;
+			}
+			
+			if (comp == 0) {
+				comp = sibling.getImportance() - getImportance();
+			}
+		}
+		
+		return comp;
+	}
+	
 	
 	/* ============================================================================================================
 	 * ------------------------------------------------------------------------------------------------------------

@@ -27,8 +27,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.db.AlertsDB;
@@ -40,14 +42,12 @@ public class FragmentAlertList extends AbstractFragment {
     private RecyclerView mRecyclerView;
     private AdapterAlertList mRecyclerAdapter;
     private LayoutManager mRecyclerLayoutManager;
-    
-    private ViewGroup mActionBarMenu;
-    private View mMenuItemDelete;
 
 	@Override 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		setHasOptionsMenu(true);
 	}
 	
 	@Override 
@@ -64,56 +64,39 @@ public class FragmentAlertList extends AbstractFragment {
 		mRecyclerAdapter = new AdapterAlertList(getController());
 		mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
 		mRecyclerView.setAdapter(mRecyclerAdapter);
+	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.fragment_alert_list_menu, menu);
 		
-		ActivityLaunch activity = (ActivityLaunch) getActivity();
-		LayoutInflater inflater = activity.getLayoutInflater();
-		mActionBarMenu = (ViewGroup) inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentAlertListMenu), null);
-		
-		mMenuItemDelete = mActionBarMenu.findViewById(R.id.menu_delete);
-		mMenuItemDelete.setOnClickListener(new OnClickListener(){
-			@Override
-			public void onClick(View v) {
-				AlertsDB db = new AlertsDB(v.getContext());
-				db.clearProcessEntities();
-				db.close();
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_btn_remove:
+				if (mRecyclerAdapter.getItemCount() > 0) {
+					AlertsDB db = new AlertsDB(getActivity());
+					db.clearProcessEntities();
+					db.close();
+					
+					mRecyclerAdapter.updateDataSet( new EntityRow[0] );
+				}
 				
-				mRecyclerAdapter.updateDataSet( new EntityRow[0] );
-			}
-		});
-	}
-	
-	@Override
-	public void onStart() {
-		super.onStart();
+				return true;
+		}
 		
-		((ActivityLaunch) getActivity()).addMenuItem(mActionBarMenu);
-	}
-	
-	@Override
-	public void onStop() {
-		super.onStop();
-		
-		((ActivityLaunch) getActivity()).removeMenuItem(mActionBarMenu);
+		return super.onOptionsItemSelected(item);
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		
-		/*IProcessList pl = ProcessScanner.execute(getActivity(), ScanMode.COLLECT_APPLICATIONS, null);
-		try {
-			Thread.sleep(1000);
-			
-		} catch (Throwable e){}
-		pl = ProcessScanner.execute(getActivity(), ScanMode.COLLECT_APPLICATIONS, pl);
-		pl.sortEntities();*/
-		
 		List<EntityRow> list = new ArrayList<EntityRow>();
 		AlertsDB db = new AlertsDB(getActivity());
-		
-		/*for (int i=0; i < 25; i++) {
-			db.addProcessEntity(pl.getEntity(i));
-		}*/
 		
 		for (EntityRow row : db) {
 			list.add(row);

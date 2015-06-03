@@ -1,47 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_layout"
+    android:id="@+id/drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     
-	<RelativeLayout 
-	    android:layout_width="match_parent"
-	    android:layout_height="match_parent"
-	    android:gravity="center_horizontal"
-	    android:background="?attr/backgroundColorSecondary">
-	    
-	    <com.spazedog.guardian.views.ExtendedFrameLayout
-	        android:id="@+id/drawer_content_frame"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:layout_marginLeft="?attr/layoutMarginLeft"
-	        android:layout_marginRight="?attr/layoutMarginRight"
-	        android:layout_marginTop="?attr/layoutMarginTop"
-	        android:layout_marginBottom="?attr/layoutMarginBottom"
-	        android:layout_below="@+id/actionbar"
-	        android:paddingTop="?attr/layoutPaddingVertical"
-	        android:paddingBottom="?attr/layoutPaddingVertical"
-	        android:paddingLeft="?attr/layoutPaddingHorizontal"
-	        android:paddingRight="?attr/layoutPaddingHorizontal"
-	        app:layout_dimens_maxWidth="?attr/layoutMaxWidth" />
-	    
-	    <include layout="@layout/toolbar_actionbar_embed"
-	        android:id="@+id/actionbar" />
-	    
-	</RelativeLayout>
-	
-    <FrameLayout
-        android:id="@+id/drawer_slider_frame"
+    <RelativeLayout 
+        android:id="@+id/wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        
+        <FrameLayout 
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_below="@+id/toolbar"
+            android:foreground="@drawable/bottom_shadow" />
+        
+		<android.support.v7.widget.Toolbar
+		    style="?attr/actionBarStyle"
+		    android:id="@+id/toolbar"
+		    android:elevation="4dp" />
+        
+    </RelativeLayout>
+    
+    <!-- 
+    It seams that everytime Google makes updates, they break things more than they already were. 
+    The new RecyclerView fixes a few known issues, but it also adds new features which makes the view 
+    4.5X slower in re-ordering the list, which is not good when you have to re-order a list every few seconds 
+    with 100/200+ items. 
+    
+    The old view (which we will continue to use for now), does not have the AppBarLayout.ScrollingViewBehavior added, and as such 
+    does not work with AppBarLayout. So once again, we need to fix Googles crap before it can be used. Either by adding the ScrollingViewBehavior 
+    to the old RecyclerView, or by fixing the new version. 
+    
+    <android.support.design.widget.CoordinatorLayout
+        android:id="@+id/wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        
+        <FrameLayout 
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:foreground="@drawable/bottom_shadow" />
+        
+        <android.support.design.widget.AppBarLayout
+            style="?attr/actionBarPanelStyle"
+            android:id="@+id/panel"
+            android:elevation="4dp">
+
+			<android.support.v7.widget.Toolbar
+			    style="@style/App.ActionBar.Toolbar"
+			    android:id="@+id/toolbar"
+			    app:layout_scrollFlags="scroll"/>
+            
+        </android.support.design.widget.AppBarLayout>
+        
+    </android.support.design.widget.CoordinatorLayout> -->
+    
+    <android.support.design.widget.NavigationView
+        android:id="@+id/navigation"
         android:layout_width="?attr/drawerWidth"
         android:layout_height="match_parent"
-        android:layout_gravity="left"
-        android:paddingTop="?attr/drawerPaddingVertical"
-        android:paddingBottom="?attr/drawerPaddingVertical"
-        android:paddingLeft="?attr/drawerPaddingHorizontal"
-        android:paddingRight="?attr/drawerPaddingHorizontal"
-        android:fitsSystemWindows="true"
+        android:layout_gravity="start"
         android:background="?attr/backgroundColorSecondary"
-        android:elevation="14dp" />
+        android:elevation="4dp"
+        app:menu="@menu/activity_launch_navigation_menu"
+        app:headerLayout="@layout/activity_launch_navigation_header" />
     
 </android.support.v4.widget.DrawerLayout>

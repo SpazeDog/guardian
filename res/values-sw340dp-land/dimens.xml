@@ -2,13 +2,8 @@
 <resources>
     
     <dimen name="drawerWidth">340dp</dimen>
-    
-    <!-- 
-    	actionBarHeight+8dp for API below 21 to account for
-    	the padding in the combat 9-patch actionbar shadow image
-     -->
-	<dimen name="actionBarHeight">66dp</dimen>
-	
+
+	<dimen name="actionBarHeight">58dp</dimen>
     <dimen name="actionBarMenuMargin">0dp</dimen>
     <dimen name="actionBarMenuPadding">19dp</dimen>
     <dimen name="actionBarTitleSize">16sp</dimen>
