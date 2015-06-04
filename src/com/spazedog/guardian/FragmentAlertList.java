@@ -76,7 +76,7 @@ public class FragmentAlertList extends AbstractFragment {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.menu_btn_remove:
+			case R.id.menu_btn_clear:
 				if (mRecyclerAdapter.getItemCount() > 0) {
 					AlertsDB db = new AlertsDB(getActivity());
 					db.clearProcessEntities();
