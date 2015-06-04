@@ -45,6 +45,7 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.spazedog.guardian.Common.LOG;
+import com.spazedog.guardian.Constants;
 import com.spazedog.lib.reflecttools.ReflectClass;
 import com.spazedog.lib.reflecttools.ReflectMethod;
 import com.spazedog.lib.reflecttools.utils.ReflectConstants.Match;
@@ -53,7 +54,6 @@ import com.spazedog.lib.reflecttools.utils.ReflectException;
 import de.robv.android.xposed.XC_MethodHook;
 
 public class WakeLockService extends IRWakeLockService.Stub {
-	
 	protected boolean mIsInteractive = true;
 	protected boolean mHasPowerPackage;
 	protected ReflectClass mInstance;
@@ -357,8 +357,9 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	}
 	
 	public static class ProcessLockInfo implements Parcelable {
+		private boolean mParcelMatches = true;
 		private String mProcessName;
-		private int mUid;
+		private int mUid = 0;
 		private long mLockTime = 0l;
 		private long mLockTimeOn = 0l;
 		private long mLockTimeOff = 0l;
@@ -372,6 +373,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		public JSONObject writeToJSON() {
 			try {
 				JSONObject out = new JSONObject();
+				out.put("mParcelMatches", mParcelMatches);
 				out.put("mUid", mUid);
 				out.put("mProcessName", mProcessName);
 				out.put("mLockTime", mLockTime);
@@ -389,6 +391,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 
 		@Override
 		public void writeToParcel(Parcel out, int flags) {
+			out.writeInt( Constants.SERVICE_PARCEL_ID );
 			out.writeInt(mUid);
 			out.writeString(mProcessName);
 			out.writeLong(mLockTime);
@@ -399,6 +402,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		
 		public ProcessLockInfo(JSONObject in) {
 			try {
+				mParcelMatches = in.getBoolean("mParcelMatches");
 				mUid = in.getInt("mUid");
 				mProcessName = in.getString("mProcessName");
 				mLockTime = in.getLong("mLockTime");
@@ -411,12 +415,16 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 		
 		public ProcessLockInfo(Parcel in) {
-			mUid = in.readInt();
-			mProcessName = in.readString();
-			mLockTime = in.readLong();
-			mLockTimeOn = in.readLong();
-			mLockTimeOff = in.readLong();
-			in.readTypedList(mWakeLocks, WakeLockInfo.CREATOR);
+			mParcelMatches = in.readInt() == Constants.SERVICE_PARCEL_ID;
+			
+			if (mParcelMatches) {
+				mUid = in.readInt();
+				mProcessName = in.readString();
+				mLockTime = in.readLong();
+				mLockTimeOn = in.readLong();
+				mLockTimeOff = in.readLong();
+				in.readTypedList(mWakeLocks, WakeLockInfo.CREATOR);
+			}
 		}
 
 		protected ProcessLockInfo(String processName, int uid) {
@@ -449,6 +457,10 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				updateLockTime(lockInfo, interactive);
 				lockInfo.updateTimestamp();
 			}
+		}
+		
+		public boolean isBroken() {
+			return !mParcelMatches;
 		}
 		
 		public long getLockTime() {
@@ -491,11 +503,12 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	}
 	
 	public static class WakeLockInfo implements Parcelable {
+		private boolean mParcelMatches = true;
 		private String mTag;
-		private int mPid;
-		private int mFlags;
-		private long mTimestamp;
-		private long mTime;
+		private int mPid = 0;
+		private int mFlags = 0;
+		private long mTimestamp = 0l;
+		private long mTime = 0l;
 		
 		@Override
 		public int describeContents() {
@@ -505,6 +518,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		public JSONObject writeToJSON() {
 			try {
 				JSONObject out = new JSONObject();
+				out.put("mParcelMatches", mParcelMatches);
 				out.put("mTag", mTag);
 				out.put("mPid", mPid);
 				out.put("mFlags", mFlags);
@@ -522,6 +536,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 
 		@Override
 		public void writeToParcel(Parcel out, int flags) {
+			out.writeInt( Constants.SERVICE_PARCEL_ID );
 			out.writeString(mTag);
 			out.writeInt(mPid);
 			out.writeInt(mFlags);
@@ -531,6 +546,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		
 		public WakeLockInfo(JSONObject in) {
 			try {
+				mParcelMatches = in.getBoolean("mParcelMatches");
 				mTag = in.getString("mTag");
 				mPid = in.getInt("mPid");
 				mFlags = in.getInt("mFlags");
@@ -543,11 +559,15 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 		
 		public WakeLockInfo(Parcel in) {
-			mTag = in.readString();
-			mPid = in.readInt();
-			mFlags = in.readInt();
-			mTimestamp = in.readLong();
-			mTime = in.readLong();
+			mParcelMatches = in.readInt() == Constants.SERVICE_PARCEL_ID;
+			
+			if (mParcelMatches) {
+				mTag = in.readString();
+				mPid = in.readInt();
+				mFlags = in.readInt();
+				mTimestamp = in.readLong();
+				mTime = in.readLong();
+			}
 		}
 		
 		protected WakeLockInfo(String tag, int pid, int flags) {
@@ -565,6 +585,10 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		
 		protected void updateTime() {
 			mTime = mTimestamp > 0 ? System.currentTimeMillis() - mTimestamp : 0l;
+		}
+		
+		public boolean isBroken() {
+			return !mParcelMatches;
 		}
 		
 		public String getTag() {

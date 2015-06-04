@@ -134,7 +134,7 @@ public class ProcessScanner {
 							 * It is much faster to compare two int values than long string values. 
 							 * But one uid might have multiple processes, so we need to check this to, but no need if the uid does not match. 
 							 */
-							if (lockInfo.getUid() == uid && lockInfo.getProcessName().equals(newEntity.getProcessName())) {
+							if (lockInfo.getUid() == uid && !lockInfo.isBroken() && lockInfo.getProcessName().equals(newEntity.getProcessName())) {
 								((ProcessEntityAndroid) newEntity).updateLocks(lockInfo); break;
 							}
 						}
