@@ -34,6 +34,10 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -50,6 +54,8 @@ import de.robv.android.xposed.XC_MethodHook;
 
 public class WakeLockService extends IRWakeLockService.Stub {
 	
+	protected boolean mIsInteractive = true;
+	protected boolean mHasPowerPackage;
 	protected ReflectClass mInstance;
 	protected Map<String, ProcessLockInfo> mProcessLockInfo = new HashMap<String, ProcessLockInfo>();
 	protected Map<IBinder, WakeLockInfo> mWakeLockInfo = new HashMap<IBinder, WakeLockInfo>();
@@ -61,7 +67,26 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		try {
 			LOG.Info(instance, "Instantiating WakeLock service");
 			
-			ReflectClass clazz = ReflectClass.forName("com.android.server.power.PowerManagerService");
+			ReflectClass clazz = null;
+			
+			try {
+				/*
+				 * Android >= Jellybean MR1
+				 */
+				clazz = ReflectClass.forName("com.android.server.power.PowerManagerService");
+				instance.mHasPowerPackage = true;
+				
+				LOG.Info(instance, "Using newer PowerManagerService in the Power Package");
+				
+			} catch (ReflectException ignorer) {
+				/*
+				 * Android >= ICS MR0 and <= Jellybean MR0
+				 */
+				clazz = ReflectClass.forName("com.android.server.PowerManagerService");
+				instance.mHasPowerPackage = false;
+				
+				LOG.Info(instance, "Using older stand-alone PowerManagerService");
+			}
 			
 			if (clazz != null) {
 				clazz.inject("systemReady", instance.systemReady);
@@ -92,10 +117,40 @@ public class WakeLockService extends IRWakeLockService.Stub {
 							.invoke("user.guardian.wakelock", WakeLockService.this, true);
 					}
 					
-					mInstance.inject("notifyWakeLockAcquiredLocked", notifyWakeLockAcquired);
-					mInstance.inject("notifyWakeLockChangingLocked", notifyWakeLockChanging);
-					mInstance.inject("notifyWakeLockReleasedLocked", notifyWakeLockReleased);
-					mInstance.inject("setHalInteractiveModeLocked", notifyInteractiveModeChanging);
+					if (mHasPowerPackage) {
+						mInstance.inject("notifyWakeLockAcquiredLocked", notifyWakeLockAcquired);
+						mInstance.inject("notifyWakeLockChangingLocked", notifyWakeLockChanging);
+						mInstance.inject("notifyWakeLockReleasedLocked", notifyWakeLockReleased);
+					
+					} else {
+						mInstance.inject("noteStartWakeLocked", notifyWakeLockAcquired);
+						mInstance.inject("noteStopWakeLocked", notifyWakeLockReleased);
+					}
+					
+					int injections = 0;
+					
+					try {
+						/*
+						 * Android >= Lollipop MR0
+						 */
+						injections = mInstance.inject("setHalInteractiveModeLocked", notifyInteractiveModeChanging);
+						
+						if (injections > 0) {
+							LOG.Info(WakeLockService.this, "Monitoring interactive state via Hal");
+						}
+						
+					} catch (ReflectException e) {} finally {
+						if (injections == 0) {
+							IntentFilter intentFilter = new IntentFilter();
+							intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+							intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+							
+							Context context = (Context) mInstance.findField("mContext").getValue();
+							context.registerReceiver(recieveInteractiveModeChanging, intentFilter);
+							
+							LOG.Info(WakeLockService.this, "Monitoring interactive state via Broadcast Receiver");
+						}
+					}
 				}
 				
 			} catch (ReflectException e) {
@@ -104,17 +159,25 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	};
 	
+	protected BroadcastReceiver recieveInteractiveModeChanging = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			synchronized (mWakeLockInfo) {
+				if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+					setInteractive(true);
+					
+				} else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+					setInteractive(false);
+				}
+			}
+		}
+	};
+	
 	protected XC_MethodHook notifyInteractiveModeChanging = new XC_MethodHook() {
 		@Override
 		protected final void afterHookedMethod(final MethodHookParam param) {
 			synchronized (mWakeLockInfo) {
-				boolean isInteractive = (Boolean) param.args[0];
-				
-				if (isInteractive() != isInteractive) {
-					for (ProcessLockInfo lockInfo : mProcessLockInfo.values()) {
-						lockInfo.updateLockTime(isInteractive);
-					}
-				}
+				setInteractive((Boolean) param.args[0]);
 			}
 		}
 	};
@@ -205,8 +268,22 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	};
 	
+	protected void setInteractive(boolean interactive) {
+		synchronized (mWakeLockInfo) {
+			if (mIsInteractive != interactive) {
+				LOG.Debug(WakeLockService.this, "The device is " + (interactive ? "waking up" : "going to sleep"));
+				
+				for (ProcessLockInfo lockInfo : mProcessLockInfo.values()) {
+					lockInfo.updateLockTime(interactive);
+				}
+				
+				mIsInteractive = interactive;
+			}
+		}
+	}
+	
 	protected boolean isInteractive() {
-		return (Boolean) mInstance.findField("mHalInteractiveModeEnabled").getValue();
+		return mIsInteractive;
 	}
 	
 	protected String getProcessName(int pid) {
@@ -233,29 +310,29 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	}
 	
 	protected IBinder getPMWakeLockBinder(ReflectClass pmWakeLock) {
-		return (IBinder) pmWakeLock.findField("mLock").getValue();
+		return (IBinder) pmWakeLock.findField(mHasPowerPackage ? "mLock" : "binder").getValue();
 	}
 	
 	protected int getPMWakeLockPid(ReflectClass pmWakeLock) {
-		return (Integer) pmWakeLock.findField("mOwnerPid").getValue();
+		return (Integer) pmWakeLock.findField(mHasPowerPackage ? "mOwnerPid" : "pid").getValue();
 	}
 	
 	protected int getPMWakeLockUid(ReflectClass pmWakeLock) {
-		return (Integer) pmWakeLock.findField("mOwnerUid").getValue();
+		return (Integer) pmWakeLock.findField(mHasPowerPackage ? "mOwnerUid" : "uid").getValue();
 	}
 	
 	protected int getPMWakeLockFlags(ReflectClass pmWakeLock) {
-		return (Integer) pmWakeLock.findField("mFlags").getValue();
+		return (Integer) pmWakeLock.findField(mHasPowerPackage ? "mFlags" : "flags").getValue();
 	}
 	
 	protected String getPMWakeLockTag(ReflectClass pmWakeLock) {
-		return (String) pmWakeLock.findField("mTag").getValue();
+		return (String) pmWakeLock.findField(mHasPowerPackage ? "mTag" : "tag").getValue();
 	}
 	
 	@Override
 	public void srv_releaseForPid(int pid) {
 		Set<IBinder> cache = new HashSet<IBinder>();
-		ReflectMethod releaseMethod = mInstance.findMethod("releaseWakeLockInternal", Match.BEST, IBinder.class, Integer.TYPE);
+		ReflectMethod releaseMethod = mInstance.findMethod(mHasPowerPackage ? "releaseWakeLockInternal" : "releaseWakeLock", Match.BEST, IBinder.class, Integer.TYPE);
 		
 		for (Entry<IBinder, WakeLockInfo> entry : mWakeLockInfo.entrySet()) {
 			if (entry.getValue().getPid() == pid) {
