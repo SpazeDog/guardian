@@ -21,6 +21,7 @@ package com.spazedog.guardian;
 
 import android.os.Bundle;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutManager;
@@ -116,6 +117,8 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 	protected UsageHandler mUsageHandler;
     
 	protected IProcessList mSystemProcess;
+	
+	protected Snackbar mSnackBar;
     
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -156,9 +159,15 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 	public void onResume() {
 		super.onResume();
 		
-		mUsageHandler = new UsageHandler(this);
-		mUsageWorker = new UsageWorker(this);
-		mUsageWorker.start();
+		if (ProcessScanner.hasLibrary()) {
+			mUsageHandler = new UsageHandler(this);
+			mUsageWorker = new UsageWorker(this);
+			mUsageWorker.start();
+			
+		} else {
+			mSnackBar = Snackbar.make(getView(), "The ProcessScanner Library has not been loaded", Snackbar.LENGTH_LONG);
+			mSnackBar.show();
+		}
 	}
 	
 	@Override
@@ -173,6 +182,15 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 				mUsageHandler = null;
 				
 			} catch (InterruptedException e) {}
+		}
+		
+		/*
+		 * Like most in the support libraries, this does not work properly. 
+		 * It should go away by it's own, but it does not.
+		 */
+		if (mSnackBar != null) {
+			mSnackBar.dismiss();
+			mSnackBar = null;
 		}
 	}
 	

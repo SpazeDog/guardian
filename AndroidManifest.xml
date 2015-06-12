@@ -7,6 +7,9 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="22" />
     
+    <!-- Cydia Substrate -->
+    <uses-permission android:name="cydia.permission.SUBSTRATE"/>
+    
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -20,6 +23,10 @@
         android:theme="@style/App.Theme.Material.Light"
         android:name="com.spazedog.guardian.application.Controller">
         
+        <!-- Cydia Substrate -->
+        <meta-data android:name="com.saurik.substrate.main" android:value="com.spazedog.guardian.backend.xposed.Injector"/>
+        
+        <!-- Xposed Framework -->
         <meta-data android:value="true" android:name="xposedmodule" />
         <meta-data android:value="30+" android:name="xposedminversion" />
         <meta-data android:value="WakeLock Monitoring" android:name="xposeddescription" />

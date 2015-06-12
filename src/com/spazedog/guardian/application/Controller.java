@@ -35,6 +35,7 @@ import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl;
 import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.IMonitorServiceListener;
 import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.Status;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
+import com.spazedog.guardian.scanner.ProcessScanner;
 import com.spazedog.guardian.utils.AbstractHandler;
 
 public class Controller extends Application implements ISettingsWrapper, ISettingsListener, IMonitorServiceListener {
@@ -145,20 +146,25 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	
 	public void startService() {
 		synchronized(mServiceLock) {
-			if (mServiceControl.status() == Status.STOPPED) {
-				String engine = mSettings.getServiceEngine();
-				
-				if (!mServiceControl.identifier().equals( engine )) {
-					Common.LOG.Debug(this, "Switching Service Engine from " + mServiceControl.identifier() + " to " + engine);
-					mServiceControl = MonitorServiceControl.getInstance(this, engine);
-					mServiceControl.setMonitorServiceListener(this);
+			if (ProcessScanner.hasLibrary()) {
+				if (mServiceControl.status() == Status.STOPPED) {
+					String engine = mSettings.getServiceEngine();
+					
+					if (!mServiceControl.identifier().equals( engine )) {
+						Common.LOG.Debug(this, "Switching Service Engine from " + mServiceControl.identifier() + " to " + engine);
+						mServiceControl = MonitorServiceControl.getInstance(this, engine);
+						mServiceControl.setMonitorServiceListener(this);
+					}
+					
+					Common.LOG.Debug(this, "Requesting Service Start, Engine = " + mServiceControl.identifier());
+					mServiceControl.start();
+					
+				} else {
+					Common.LOG.Debug(this, "Request for Service Start failed as it is alrady started, Engine = " + mServiceControl.identifier());
 				}
 				
-				Common.LOG.Debug(this, "Requesting Service Start, Engine = " + mServiceControl.identifier());
-				mServiceControl.start();
-				
 			} else {
-				Common.LOG.Debug(this, "Request for Service Start failed as it is alrady started, Engine = " + mServiceControl.identifier());
+				Common.LOG.Error(this, "Request for Service Start failed as the ProcessScanner Library has not been loaded");
 			}
 		}
 	}
