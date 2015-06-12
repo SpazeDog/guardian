@@ -108,15 +108,13 @@ public class FragmentNavigationHeader extends AbstractFragment implements IServi
 	@Override
 	public void onWidgetChanged(WidgetView<?> view, Object newValue) {
 		if (view == mSwitch) {
-			Settings settings = getSettings();
-			
 			/*
 			 * This should always indicate the current state. 
 			 * Our 'onServiceChange()' will make sure to update this.
 			 */
-			mSwitch.setChecked(settings.isServiceEnabled());
+			mSwitch.setChecked(getController().getServiceState() == Status.STARTED);
 			
-			settings.isServiceEnabled( (Boolean) newValue );
+			getSettings().isServiceEnabled( (Boolean) newValue );
 		}
 	}
 }

@@ -27,7 +27,7 @@ import android.os.RemoteException;
 
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.lib.reflecttools.ReflectClass;
-import com.spazedog.lib.reflecttools.utils.ReflectException;
+import com.spazedog.lib.reflecttools.ReflectException;
 
 public class WakeLockManager {
 	private static WeakReference<WakeLockManager> oInstance = new WeakReference<WakeLockManager>(null);
@@ -40,7 +40,7 @@ public class WakeLockManager {
 	
 	private void establishConnection() throws Exception {
 		try {
-			ReflectClass service = ReflectClass.forClass(IRWakeLockService.class).bindInterface("user.guardian.wakelock");
+			ReflectClass service = ReflectClass.fromClass(IRWakeLockService.class).bindInterface("user.guardian.wakelock");
 			
 			if (service != null) {
 				mService = (IRWakeLockService) service.getReceiver();

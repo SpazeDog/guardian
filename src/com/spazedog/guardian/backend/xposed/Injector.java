@@ -19,51 +19,18 @@
 
 package com.spazedog.guardian.backend.xposed;
 
-import android.os.Build;
+import android.content.Context;
 
-import com.spazedog.lib.reflecttools.ReflectClass;
-import com.spazedog.lib.reflecttools.utils.ReflectException;
+import com.spazedog.lib.reflecttools.bridge.InitBridge;
 
-import de.robv.android.xposed.IXposedHookZygoteInit;
-import de.robv.android.xposed.XC_MethodHook;
-
-public class Injector implements IXposedHookZygoteInit {
-
-	@Override
-	public void initZygote(StartupParam startupParam) throws Throwable {
-		try {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-				ReflectClass.forName("android.app.ActivityThread")
-				.inject("systemMain", new XC_MethodHook() {
-					@Override
-					protected final void afterHookedMethod(final MethodHookParam param) {
-						try {
-							ReflectClass.forName("com.android.server.am.ActivityManagerService", Thread.currentThread().getContextClassLoader())
-							.inject(new XC_MethodHook() {
-								@Override
-								protected final void afterHookedMethod(final MethodHookParam param) {
-									bootstrapSystem(param.thisObject);
-								}
-							});
-							
-						} catch (ReflectException e) {}
-					}
-				});
-				
-			} else {
-				ReflectClass.forName("com.android.server.am.ActivityManagerService")
-				.inject("startRunning", new XC_MethodHook() {
-					@Override
-					protected final void afterHookedMethod(final MethodHookParam param) {
-						bootstrapSystem(param.thisObject);
-					}
-				});
-			}
-			
-		} catch (ReflectException e) {}
+public class Injector extends InitBridge {
+	
+	public static final void initialize() throws Throwable {
+		InitBridge.initialize( Injector.class );
 	}
 	
-	private void bootstrapSystem(Object am) {
+	@Override
+	public void onSystemInit(Context systemContext) {
 		WakeLockService.init();
 	}
 }

@@ -47,11 +47,10 @@ import android.util.Log;
 import com.spazedog.guardian.Common.LOG;
 import com.spazedog.guardian.Constants;
 import com.spazedog.lib.reflecttools.ReflectClass;
+import com.spazedog.lib.reflecttools.ReflectException;
+import com.spazedog.lib.reflecttools.ReflectMember.Match;
 import com.spazedog.lib.reflecttools.ReflectMethod;
-import com.spazedog.lib.reflecttools.utils.ReflectConstants.Match;
-import com.spazedog.lib.reflecttools.utils.ReflectException;
-
-import de.robv.android.xposed.XC_MethodHook;
+import com.spazedog.lib.reflecttools.bridge.MethodBridge;
 
 public class WakeLockService extends IRWakeLockService.Stub {
 	protected boolean mIsInteractive = true;
@@ -73,7 +72,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				/*
 				 * Android >= Jellybean MR1
 				 */
-				clazz = ReflectClass.forName("com.android.server.power.PowerManagerService");
+				clazz = ReflectClass.fromName("com.android.server.power.PowerManagerService");
 				instance.mHasPowerPackage = true;
 				
 				LOG.Info(instance, "Using newer PowerManagerService in the Power Package");
@@ -82,14 +81,14 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				/*
 				 * Android >= ICS MR0 and <= Jellybean MR0
 				 */
-				clazz = ReflectClass.forName("com.android.server.PowerManagerService");
+				clazz = ReflectClass.fromName("com.android.server.PowerManagerService");
 				instance.mHasPowerPackage = false;
 				
 				LOG.Info(instance, "Using older stand-alone PowerManagerService");
 			}
 			
 			if (clazz != null) {
-				clazz.inject("systemReady", instance.systemReady);
+				clazz.bridge("systemReady", instance.systemReady);
 			}
 			
 		} catch (ReflectException e) {
@@ -97,34 +96,34 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	}
 	
-	protected XC_MethodHook systemReady = new XC_MethodHook() {
+	protected MethodBridge systemReady = new MethodBridge() {
 		@Override
-		protected final void afterHookedMethod(final MethodHookParam param) {
+		public void bridgeEnd(BridgeParams params) {
 			try {
 				LOG.Info(WakeLockService.this, "System is ready, instantiating service hooks");
 				
-				mInstance = ReflectClass.forReceiver(param.thisObject);
+				mInstance = ReflectClass.fromReceiver(params.receiver);
 				
 				if (mInstance != null) {
 					if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-						ReflectClass.forName("android.os.ServiceManager")
+						ReflectClass.fromName("android.os.ServiceManager")
 							.findMethod("addService", Match.BEST, String.class, IBinder.class)
 							.invoke("user.guardian.wakelock", WakeLockService.this);
 						
 					} else {
-						ReflectClass.forName("android.os.ServiceManager")
+						ReflectClass.fromName("android.os.ServiceManager")
 							.findMethod("addService", Match.BEST, String.class, IBinder.class, Boolean.TYPE)
 							.invoke("user.guardian.wakelock", WakeLockService.this, true);
 					}
 					
 					if (mHasPowerPackage) {
-						mInstance.inject("notifyWakeLockAcquiredLocked", notifyWakeLockAcquired);
-						mInstance.inject("notifyWakeLockChangingLocked", notifyWakeLockChanging);
-						mInstance.inject("notifyWakeLockReleasedLocked", notifyWakeLockReleased);
+						mInstance.bridge("notifyWakeLockAcquiredLocked", notifyWakeLockAcquired);
+						mInstance.bridge("notifyWakeLockChangingLocked", notifyWakeLockChanging);
+						mInstance.bridge("notifyWakeLockReleasedLocked", notifyWakeLockReleased);
 					
 					} else {
-						mInstance.inject("noteStartWakeLocked", notifyWakeLockAcquired);
-						mInstance.inject("noteStopWakeLocked", notifyWakeLockReleased);
+						mInstance.bridge("noteStartWakeLocked", notifyWakeLockAcquired);
+						mInstance.bridge("noteStopWakeLocked", notifyWakeLockReleased);
 					}
 					
 					int injections = 0;
@@ -133,7 +132,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 						/*
 						 * Android >= Lollipop MR0
 						 */
-						injections = mInstance.inject("setHalInteractiveModeLocked", notifyInteractiveModeChanging);
+						injections = mInstance.bridge("setHalInteractiveModeLocked", notifyInteractiveModeChanging);
 						
 						if (injections > 0) {
 							LOG.Info(WakeLockService.this, "Monitoring interactive state via Hal");
@@ -173,20 +172,20 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	};
 	
-	protected XC_MethodHook notifyInteractiveModeChanging = new XC_MethodHook() {
+	protected MethodBridge notifyInteractiveModeChanging = new MethodBridge() {
 		@Override
-		protected final void afterHookedMethod(final MethodHookParam param) {
+		public void bridgeEnd(BridgeParams params) {
 			synchronized (mWakeLockInfo) {
-				setInteractive((Boolean) param.args[0]);
+				setInteractive((Boolean) params.args[0]);
 			}
 		}
 	};
 	
-	protected XC_MethodHook notifyWakeLockAcquired = new XC_MethodHook() {
+	protected MethodBridge notifyWakeLockAcquired = new MethodBridge() {
 		@Override
-		protected final void afterHookedMethod(final MethodHookParam param) {
+		public void bridgeEnd(BridgeParams params) {
 			synchronized (mWakeLockInfo) {
-				ReflectClass pmWakeLock = ReflectClass.forReceiver(param.args[0]);
+				ReflectClass pmWakeLock = ReflectClass.fromReceiver(params.args[0]);
 				int flags = getPMWakeLockFlags(pmWakeLock);
 				boolean partialWakelock = (flags & 0x00000001) != 0;
 
@@ -215,11 +214,11 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	};
 	
-	protected XC_MethodHook notifyWakeLockChanging = new XC_MethodHook() {
+	protected MethodBridge notifyWakeLockChanging = new MethodBridge() {
 		@Override
-		protected final void afterHookedMethod(final MethodHookParam param) {
+		public void bridgeEnd(BridgeParams params) {
 			synchronized (mWakeLockInfo) {
-				ReflectClass pmWakeLock = ReflectClass.forReceiver(param.args[0]);
+				ReflectClass pmWakeLock = ReflectClass.fromReceiver(params.args[0]);
 				IBinder identifier = getPMWakeLockBinder(pmWakeLock);
 				String processName = mProcessNameCache.get(identifier);
 				
@@ -240,11 +239,11 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	};
 	
-	protected XC_MethodHook notifyWakeLockReleased = new XC_MethodHook() {
+	protected MethodBridge notifyWakeLockReleased = new MethodBridge() {
 		@Override
-		protected final void afterHookedMethod(final MethodHookParam param) {
+		public void bridgeEnd(BridgeParams params) {
 			synchronized (mWakeLockInfo) {
-				ReflectClass pmWakeLock = ReflectClass.forReceiver(param.args[0]);
+				ReflectClass pmWakeLock = ReflectClass.fromReceiver(params.args[0]);
 				IBinder identifier = getPMWakeLockBinder(pmWakeLock);
 				String processName = mProcessNameCache.remove(identifier);
 				
