@@ -29,10 +29,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Message;
 
-import com.spazedog.guardian.application.Controller.IControllerWrapper;
 import com.spazedog.guardian.utils.AbstractHandler;
 
-public class Settings implements IControllerWrapper {
+public class Settings implements ApplicationImpl {
 	
 	public enum Type {
 		SERVICE_STATE,
@@ -45,10 +44,6 @@ public class Settings implements IControllerWrapper {
 		ALLOW_ROOT,
 		MONITOR_LINUX,
 		LISTENER_ADDED
-	}
-	
-	public static interface ISettingsWrapper {
-		public Settings getSettings();
 	}
 	
 	public static interface ISettingsListener {
@@ -103,6 +98,11 @@ public class Settings implements IControllerWrapper {
 	public Controller getController() {
 		return mController.get();
 	}
+
+    @Override
+    public Settings getSettings() {
+        return this;
+    }
 	
 	public void addListener(ISettingsListener listener) {
 		synchronized(mSettingsListeners) {

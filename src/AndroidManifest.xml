@@ -1,11 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.spazedog.guardian"
-    android:versionCode="1"
-    android:versionName="1.2.0" >
-
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="22" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    package="com.spazedog.guardian" >
     
     <!-- Cydia Substrate -->
     <uses-permission android:name="cydia.permission.SUBSTRATE"/>
@@ -21,7 +15,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Guardian"
         android:theme="@style/App.Theme.Material.Light"
-        android:name="com.spazedog.guardian.application.Controller">
+        android:name="com.spazedog.guardian.application.Controller"
+        tools:replace="android:label">
         
         <!-- Cydia Substrate -->
         <meta-data android:name="com.saurik.substrate.main" android:value="com.spazedog.guardian.backend.xposed.Injector"/>

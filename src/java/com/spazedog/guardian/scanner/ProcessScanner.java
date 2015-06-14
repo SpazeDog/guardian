@@ -26,6 +26,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 
+import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
@@ -45,20 +46,22 @@ public class ProcessScanner {
 	 * JNI ProcessScanner Library
 	 */
 	
-		private static boolean oIsLoaded = false;
+		private static boolean oIsLoaded = true;
 		
 		public static boolean hasLibrary() {
 			return oIsLoaded;
 		}
 	
-		/*static {
+		static {
 			try {
 				System.loadLibrary("processScanner");
 				
 			} catch (Throwable e) {
-				oIsLoaded = false;
+                Common.LOG.Error(ProcessScanner.class.getName(), e.getMessage(), e);
+                oIsLoaded = false;
 			}
-		}*/
+		}
+
 		/*
 		 * pidList:
 		 * 					pidList[i] = Process ID

@@ -22,14 +22,13 @@ package com.spazedog.guardian.utils;
 import android.app.Activity;
 import android.support.v4.app.Fragment;
 
+import com.spazedog.guardian.application.ApplicationImpl;
 import com.spazedog.guardian.application.Controller;
-import com.spazedog.guardian.application.Controller.IControllerWrapper;
 import com.spazedog.guardian.application.Settings;
-import com.spazedog.guardian.application.Settings.ISettingsWrapper;
 import com.spazedog.guardian.utils.ActivityLogic.IActivityLogic;
 import com.spazedog.guardian.utils.FragmentLogic.IFragmentLogic;
 
-public abstract class AbstractFragment extends Fragment implements IFragmentLogic, IControllerWrapper, ISettingsWrapper {
+public abstract class AbstractFragment extends Fragment implements IFragmentLogic, ApplicationImpl {
 	
 	private FragmentLogic mLogic;
 	
