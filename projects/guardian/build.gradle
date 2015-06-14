@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+
+buildDir = '../../build/guardian'
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        applicationId "com.spazedog.guardian"
+
+        minSdkVersion 14
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0.1"
+    }
+
+    sourceSets {
+        main {
+            manifest { srcFile '../../src/AndroidManifest.xml' }
+            res { srcDirs = ['../../src/res'] }
+            resources { srcDirs = ['../../src/java'] }
+            renderscript { srcDirs = ['../../src/java'] }
+            java { srcDirs = ['../../src/java'] }
+            assets { srcDirs = ['../../src/assets'] }
+            jniLibs { srcDirs = ['../../src/libs'] }
+
+            // Automatic ndk-build, disable it
+            jni { srcDirs = [] }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_6
+        targetCompatibility JavaVersion.VERSION_1_6
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+repositories {
+    flatDir {
+        dirs '../../src/libs'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: '../../src/libs', include: ['*.jar'])
+    compile (name:'reflectTools-release', ext:'aar')
+    compile (name:'rootfw-release', ext:'aar')
+    compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'com.android.support:support-v4:22.2.0'
+    compile 'com.android.support:design:22.2.0'
+}

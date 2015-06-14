@@ -29,7 +29,6 @@ import android.os.Message;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Settings.ISettingsListener;
-import com.spazedog.guardian.application.Settings.ISettingsWrapper;
 import com.spazedog.guardian.application.Settings.Type;
 import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl;
 import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.IMonitorServiceListener;
@@ -38,11 +37,7 @@ import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.scanner.ProcessScanner;
 import com.spazedog.guardian.utils.AbstractHandler;
 
-public class Controller extends Application implements ISettingsWrapper, ISettingsListener, IMonitorServiceListener {
-	
-	public static interface IControllerWrapper {
-		public Controller getController();
-	}
+public class Controller extends Application implements ApplicationImpl, ISettingsListener, IMonitorServiceListener {
 	
 	public static interface IServiceListener {
 		public void onServiceChange(Integer status, Boolean sticky);
@@ -122,9 +117,14 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	public Settings getSettings() {
 		return mSettings;
 	}
+
+    @Override
+    public Controller getController() {
+        return this;
+    }
 	
 	public WakeLockManager getWakeLockManager() {
-		return mWakelockManager;
+        return mWakelockManager;
 	}
 	
 	public void addServiceListener(IServiceListener listener) {
@@ -206,11 +206,11 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 	}
 	
 	public int getServiceState() {
-		return mServiceControl.status();
+        return mServiceControl.status();
 	}
 	
 	public MonitorServiceControl getServiceControl() {
-		return mServiceControl;
+        return mServiceControl;
 	}
 	
 	protected void invokeServiceListeners(int status, Boolean sticky) {
@@ -227,6 +227,6 @@ public class Controller extends Application implements ISettingsWrapper, ISettin
 
 	@Override
 	public void onServiceStateChanged(int state) {
-		invokeServiceListeners(state, false);
+        invokeServiceListeners(state, false);
 	}
 }

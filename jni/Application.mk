@@ -31,4 +31,14 @@ APP_PLATFORM := android-14
 APP_ABI := all
 
 # Compile state, either 'debug' or 'release'
-APP_OPTIM := debug
+ifeq ($(BUILD_TYPE),debug)
+    APP_OPTIM := debug
+else
+    APP_OPTIM := release
+endif
+
+# Overwrite the compiled output directory
+NDK_APP_LIBS_OUT := obj/out/lib
+
+-include $(NDK_PROJECT_PATH)/src/native/Application.mk
+

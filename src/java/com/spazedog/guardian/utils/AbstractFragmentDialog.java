@@ -30,15 +30,14 @@ import android.view.Window;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.guardian.application.ApplicationImpl;
 import com.spazedog.guardian.application.Controller;
-import com.spazedog.guardian.application.Controller.IControllerWrapper;
 import com.spazedog.guardian.application.Settings;
-import com.spazedog.guardian.application.Settings.ISettingsWrapper;
 import com.spazedog.guardian.utils.ActivityLogic.IActivityLogic;
 import com.spazedog.guardian.utils.FragmentLogic.IFragmentLogic;
 import com.spazedog.guardian.views.IExtendedLayout;
 
-public abstract class AbstractFragmentDialog extends DialogFragment implements IFragmentLogic, IDialog, IControllerWrapper, ISettingsWrapper {
+public abstract class AbstractFragmentDialog extends DialogFragment implements IFragmentLogic, IDialog, ApplicationImpl {
 	
 	private FragmentLogic mLogic;
 	
