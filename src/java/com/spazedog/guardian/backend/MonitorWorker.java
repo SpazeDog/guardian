@@ -19,13 +19,6 @@
 
 package com.spazedog.guardian.backend;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -59,6 +52,13 @@ import com.spazedog.guardian.scanner.ProcessScanner;
 import com.spazedog.guardian.scanner.ProcessScanner.ScanMode;
 import com.spazedog.lib.rootfw4.RootFW;
 import com.spazedog.lib.rootfw4.Shell;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class MonitorWorker {
 	
@@ -163,7 +163,7 @@ public class MonitorWorker {
 			
 			for (int i=0; i < size; i++) {
 				int key = in.readInt();
-				ThresholdItem value = (ThresholdItem) in.readParcelable(null);
+				ThresholdItem value = (ThresholdItem) in.readParcelable(ThresholdItem.class.getClassLoader());
 				
 				mMap.put(key, value);
 			}
