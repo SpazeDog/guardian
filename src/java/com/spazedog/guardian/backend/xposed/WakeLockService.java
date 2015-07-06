@@ -333,12 +333,14 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	public void srv_releaseForPid(int pid) {
 		Set<IBinder> cache = new HashSet<IBinder>();
 		ReflectMethod releaseMethod = mInstance.findMethod(mHasPowerPackage ? "releaseWakeLockInternal" : "releaseWakeLock", Match.BEST, IBinder.class, Integer.TYPE);
-		
-		for (Entry<IBinder, WakeLockInfo> entry : mWakeLockInfo.entrySet()) {
-			if (entry.getValue().getPid() == pid) {
-				cache.add(entry.getKey());
-			}
-		}
+
+        synchronized(mWakeLockInfo) {
+            for (Entry<IBinder, WakeLockInfo> entry : mWakeLockInfo.entrySet()) {
+                if (entry.getValue().getPid() == pid) {
+                    cache.add(entry.getKey());
+                }
+            }
+        }
 
         long callingId = Binder.clearCallingIdentity();
 		
