@@ -19,25 +19,11 @@
 
 package com.spazedog.guardian.backend.xposed;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -51,6 +37,21 @@ import com.spazedog.lib.reflecttools.ReflectException;
 import com.spazedog.lib.reflecttools.ReflectMember.Match;
 import com.spazedog.lib.reflecttools.ReflectMethod;
 import com.spazedog.lib.reflecttools.bridge.MethodBridge;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class WakeLockService extends IRWakeLockService.Stub {
 	protected boolean mIsInteractive = true;
@@ -338,10 +339,14 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				cache.add(entry.getKey());
 			}
 		}
+
+        long callingId = Binder.clearCallingIdentity();
 		
 		for (IBinder identifier : cache) {
 			releaseMethod.invoke(identifier, 0);
 		}
+
+        Binder.restoreCallingIdentity(callingId);
 	}
 	
 	@Override
