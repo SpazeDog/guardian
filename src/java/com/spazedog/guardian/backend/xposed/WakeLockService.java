@@ -38,6 +38,7 @@ import com.spazedog.lib.reflecttools.ReflectMember.Match;
 import com.spazedog.lib.reflecttools.ReflectMethod;
 import com.spazedog.lib.reflecttools.bridge.MethodBridge;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -385,6 +386,12 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				out.put("mLockTime", mLockTime);
 				out.put("mLockTimeOn", mLockTimeOn);
 				out.put("mLockTimeOff", mLockTimeOff);
+
+                JSONArray wakeLocks = new JSONArray();
+                for (WakeLockInfo lockInfo : mWakeLocks) {
+                    wakeLocks.put(lockInfo.writeToJSON());
+                }
+                out.put("mWakeLocks", wakeLocks);
 				
 				return out;
 				
@@ -414,6 +421,11 @@ public class WakeLockService extends IRWakeLockService.Stub {
 				mLockTime = in.getLong("mLockTime");
 				mLockTimeOn = in.getLong("mLockTimeOn");
 				mLockTimeOff = in.getLong("mLockTimeOff");
+
+                JSONArray wakeLocks = new JSONArray(in.getString("mWakeLocks"));
+                for (int i=0; i < wakeLocks.length(); i++) {
+                    mWakeLocks.add( new WakeLockInfo( new JSONObject( wakeLocks.getString(i) ) ) );
+                }
 				
 			} catch (JSONException e) {
 				Log.e(getClass().getName(), e.getMessage(), e);
