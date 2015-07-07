@@ -19,8 +19,6 @@
 
 package com.spazedog.guardian;
 
-import java.lang.ref.WeakReference;
-
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.RecyclerView;
@@ -33,9 +31,12 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
-import com.spazedog.guardian.scanner.IProcess.IProcessList;
-import com.spazedog.guardian.scanner.IProcessEntity;
-import com.spazedog.guardian.scanner.ProcessEntityAndroid;
+import com.spazedog.guardian.scanner.EntityAndroid;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
+import com.spazedog.guardian.scanner.containers.ProcList;
+
+import java.lang.ref.WeakReference;
 
 public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.ViewHolder> implements OnClickListener {
 
@@ -71,7 +72,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 	protected WeakReference<Controller> mController;
 	protected OnItemClickListener mListener;
 	protected LruCache<String, Bitmap> mImageCache;
-	protected IProcessList mProcessList;
+	protected ProcList<?> mProcessList;
 	
 	public AdapterProcessList(Controller controller) {
 		mController = new WeakReference<Controller>(controller);
@@ -101,20 +102,22 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 	public void onBindViewHolder(ViewHolder holder, int position) {
 		synchronized(this) {
 			Controller controller = mController.get();
-			IProcessEntity entity = mProcessList.getEntity(position);
+			ProcEntity<?> entity = mProcessList.getEntity(position);
+            DataLoader entityData = entity.getDataLoader(controller);
 	
 			holder.textUsage.setText( (entity.getCpuUsage() + "%") );
-			holder.textLabel.setText(entity.loadPackageLabel(controller));
+			holder.textLabel.setText(entityData.getPackageLabel());
 			holder.textName.setText(entity.getProcessName());
-			holder.image.setImageBitmap( loadIcon(entity) );
-			holder.textImportance.setText(entity.loadImportanceLabel(controller.getResources()));
+			holder.image.setImageBitmap( loadIcon(entityData) );
+			holder.textImportance.setText(entityData.getImportanceLabel());
 			
 			holder.rootView.setOnClickListener(this);
 			holder.rootView.setTag(position);
 			
 			ProcessLockInfo lockInfo = null;
-			if (entity.getImportance() > 0) {
-				lockInfo = ((ProcessEntityAndroid) entity).getProcessLockInfo();
+			EntityAndroid androidEntity = EntityAndroid.cast(entity);
+			if (androidEntity != null) {
+				lockInfo = androidEntity.getProcessLockInfo();
 				
 				if (lockInfo != null) {
 					holder.textLock.setText(Common.convertTime(lockInfo.getLockTime()));
@@ -145,7 +148,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 		mListener = listener;
 	}
 	
-	public void updateDataSet(IProcessList processList) {
+	public void updateDataSet(ProcList<?> processList) {
 		synchronized(this) {
 			Integer curSize = getItemCount();			
 			Integer newSize = processList.getEntitySize();
@@ -165,12 +168,12 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 		}
 	}
 	
-	protected Bitmap loadIcon(IProcessEntity entity) {
-		String cacheId = entity.getImportance() > 0 ? entity.loadPackageName(mController.get()) : "linux:process";
+	protected Bitmap loadIcon(DataLoader entityData) {
+		String cacheId = entityData.getImportance() > 0 ? entityData.getPackageName() : "linux:process";
 		Bitmap bitmap = mImageCache.get(cacheId);
 		
 		if (bitmap == null) {
-			mImageCache.put(cacheId, (bitmap = entity.loadPackageBitmap(mController.get(), 60f, 60f)));
+			mImageCache.put(cacheId, (bitmap = entityData.getPackageBitmap(60f, 60f)));
 		}
 		
 		return bitmap;

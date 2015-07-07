@@ -1,10 +1,5 @@
 package com.spazedog.guardian;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
@@ -19,11 +14,14 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.spazedog.guardian.application.Settings;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
-import com.spazedog.guardian.scanner.IProcess.IProcessList;
-import com.spazedog.guardian.scanner.IProcessEntity;
-import com.spazedog.guardian.scanner.ProcessEntityAndroid;
+import com.spazedog.guardian.scanner.EntityAndroid;
+import com.spazedog.guardian.scanner.EntityAndroid.AndroidDataLoader;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
+import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.views.TextboxWidget;
 import com.spazedog.lib.rootfw4.RootFW;
@@ -36,38 +34,16 @@ public class FragmentProcessDetails extends AbstractFragment {
 	 * 			This includes the information in the IProcessEntity interface.
 	 */
 	
-	protected IProcessList mProcesses;
-	protected IProcessEntity mEntity;
-	protected RunningAppProcessInfo[] mRunningProcesses;
-	protected Map<Integer, RunningAppProcessInfo> mRunningProcessesMap;
+	protected ProcList<?> mProcesses;
+	protected ProcEntity<?> mEntity;
 	protected Snackbar mSnackBar;
-	
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		if (mRunningProcesses != null) {
-			outState.putParcelableArray("mRunningProcesses", mRunningProcesses);
-		}
-		
-		super.onSaveInstanceState(outState);
-	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		setHasOptionsMenu(true);
-		
-		if (savedInstanceState != null) {
-			mRunningProcesses = (RunningAppProcessInfo[]) savedInstanceState.getParcelableArray("mRunningProcesses");
-		}
-		
-		if (mRunningProcesses == null) {
-			ActivityManager activityManager = (ActivityManager) getActivity().getSystemService(Activity.ACTIVITY_SERVICE);
-			List<RunningAppProcessInfo> runningApps = activityManager.getRunningAppProcesses();
-			
-			mRunningProcesses = runningApps.toArray( new RunningAppProcessInfo[runningApps.size()] );
-		}
-		
+
 		mProcesses = getArguments().getParcelable("processes");
 		mEntity = getArguments().getParcelable("entity");
 	}
@@ -80,11 +56,13 @@ public class FragmentProcessDetails extends AbstractFragment {
 	@Override 
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		
+
+        DataLoader entityData = mEntity.getDataLoader(getActivity());
+
 		ImageView iconView = (ImageView) view.findViewById(R.id.process_item_img);
-		iconView.setImageBitmap(mEntity.loadPackageBitmap(getActivity(), 60, 60));
+		iconView.setImageBitmap(entityData.getPackageBitmap(60, 60));
 		
-		String label = mEntity.loadPackageLabel(getActivity());
+		String label = entityData.getPackageLabel();
 		if (label != null) {
 			TextView titleView = (TextView) view.findViewById(R.id.process_item_label);
 			titleView.setText(label);
@@ -94,7 +72,7 @@ public class FragmentProcessDetails extends AbstractFragment {
 		summaryView.setText(mEntity.getProcessName());
 		
 		TextboxWidget importanceView = (TextboxWidget) view.findViewById(R.id.process_item_importance);
-		importanceView.setText(mEntity.loadImportanceLabel(getActivity().getResources()));
+		importanceView.setText(entityData.getImportanceLabel());
 		
 		TextboxWidget pidView = (TextboxWidget) view.findViewById(R.id.process_item_pid);
 		pidView.setText("" + mEntity.getProcessId());
@@ -159,29 +137,28 @@ public class FragmentProcessDetails extends AbstractFragment {
 	 * 			Add into about services contained in this process
 	 */
 	public void createAndroidViews(View view) {
-		int pid = mEntity.getProcessId();
-		Map<Integer, RunningAppProcessInfo> processes = getRunningProcesses();
-		RunningAppProcessInfo appInfo = processes.get(pid);
-		
-		if (appInfo != null) {
-			if (appInfo.importanceReasonPid > 0) {
-				createAndroidCaller(view, appInfo);
-			}
-		}
-		
-		createAndroidWakelock(view);
+        EntityAndroid entity = EntityAndroid.cast(mEntity);
+
+        if (entity != null) {
+            AndroidDataLoader entityData = entity.getDataLoader(getActivity());
+
+            if (entityData.getCallingProcessId() > 0) {
+                createAndroidCaller(view, entityData);
+            }
+
+            createAndroidWakelock(view, entity);
+        }
 	}
 	
-	public void createAndroidWakelock(View view) {
-		ProcessEntityAndroid androidEntity = (ProcessEntityAndroid) mEntity;
-		ProcessLockInfo lockInfo = androidEntity.getProcessLockInfo();
+	public void createAndroidWakelock(View view, EntityAndroid entity) {
+		ProcessLockInfo lockInfo = entity.getProcessLockInfo();
 		
 		if (lockInfo != null) {
 			View groupView = view.findViewById(R.id.process_group_wakelock);
 			groupView.setVisibility(View.VISIBLE);
 			
 			TextboxWidget totalLockView = (TextboxWidget) view.findViewById(R.id.process_item_wakelock_total);
-			totalLockView.setText( Common.convertTime(lockInfo.getLockTime()) );
+			totalLockView.setText(Common.convertTime(lockInfo.getLockTime()));
 			
 			TextboxWidget onLockView = (TextboxWidget) view.findViewById(R.id.process_item_wakelock_on);
 			onLockView.setText( Common.convertTime(lockInfo.getLockTimeOn()) );
@@ -191,17 +168,18 @@ public class FragmentProcessDetails extends AbstractFragment {
 		}
 	}
 	
-	public void createAndroidCaller(View view, RunningAppProcessInfo appInfo) {
-		IProcessEntity callerEntity = mProcesses.findEntity(appInfo.importanceReasonPid);
+	public void createAndroidCaller(View view, AndroidDataLoader entityData) {
+		ProcEntity<?> callerEntity = mProcesses.findEntity(entityData.getCallingProcessId());
 		
 		if (callerEntity != null) {
+            DataLoader callerData = callerEntity.getDataLoader(getActivity());
 			View groupView = view.findViewById(R.id.process_group_caller);
 			groupView.setVisibility(View.VISIBLE);
 			
 			ImageView iconView = (ImageView) view.findViewById(R.id.process_caller_img);
-			iconView.setImageBitmap(callerEntity.loadPackageBitmap(getActivity(), 60, 60));
+			iconView.setImageBitmap(callerData.getPackageBitmap(60, 60));
 			
-			String label = callerEntity.loadPackageLabel(getActivity());
+			String label = callerData.getPackageLabel();
 			if (label != null) {
 				TextView titleView = (TextView) view.findViewById(R.id.process_caller_label);
 				titleView.setText(label);
@@ -210,22 +188,6 @@ public class FragmentProcessDetails extends AbstractFragment {
 			TextView summaryView = (TextView) view.findViewById(R.id.process_caller_name);
 			summaryView.setText(callerEntity.getProcessName());
 		}
-	}
-	
-	/*
-	 * Return a map of running android processes which can be accessed by their pid's
-	 */
-	@SuppressLint("UseSparseArrays")
-	public Map<Integer, RunningAppProcessInfo> getRunningProcesses() {
-		if (mRunningProcessesMap == null) {
-			mRunningProcessesMap = new HashMap<Integer, RunningAppProcessInfo>();
-			
-			for(RunningAppProcessInfo appInfo : mRunningProcesses) {
-				mRunningProcessesMap.put(appInfo.pid, appInfo);
-			}
-		}
-		
-		return mRunningProcessesMap;
 	}
 	
 	public void killEntity() {
@@ -240,7 +202,7 @@ public class FragmentProcessDetails extends AbstractFragment {
 						
 					} else {
 						ActivityManager manager = (ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE);
-						manager.killBackgroundProcesses(mEntity.loadPackageName(getActivity()));
+						manager.killBackgroundProcesses(mEntity.getDataLoader(getActivity()).getPackageName());
 					}
 					
 					getFragmentManager().popBackStackImmediate();

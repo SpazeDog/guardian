@@ -1,6 +1,6 @@
 /*
  * This file is part of the Guardian Project: https://github.com/spazedog/guardian
- *  
+ *
  * Copyright (c) 2015 Daniel Bergløv
  *
  * Guardian is free software: you can redistribute it and/or modify
@@ -19,30 +19,20 @@
 
 package com.spazedog.guardian.scanner;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 
-import com.spazedog.guardian.R;
-import com.spazedog.guardian.scanner.IProcessEntity.ProcessEntity;
+import com.spazedog.guardian.scanner.containers.ProcList;
 
-public class ProcessEntityLinux extends ProcessEntity {
-	
-	protected ProcessEntityLinux() {
-		super();
-	}
+public class StatSystem extends ProcList<StatSystem> {
 
-	@Override
-	public Drawable loadPackageDrawable(Context context) {
-		return context.getResources().getDrawable(R.drawable.process_icon);
-	}
+    public static StatSystem cast(ProcList<?> instance) {
+        if (instance != null && instance instanceof StatSystem) {
+            return (StatSystem) instance;
+        }
 
-	@Override
-	public String loadPackageName(Context context) {
-		return null;
-	}
+        return null;
+    }
 
-	@Override
-	public String loadPackageLabel(Context context) {
-		return null;
-	}
+    public StatSystem() {
+        super();
+    }
 }

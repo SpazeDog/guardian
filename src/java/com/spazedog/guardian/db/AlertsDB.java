@@ -19,9 +19,6 @@
 
 package com.spazedog.guardian.db;
 
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -29,8 +26,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.spazedog.guardian.db.AlertsDB.EntityRow;
-import com.spazedog.guardian.scanner.IProcessEntity;
-import com.spazedog.guardian.scanner.IProcessEntity.ProcessEntity;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcStat;
+
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 
 public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 	
@@ -74,7 +74,7 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 		database.close();
 	}
 	
-	public void addProcessEntity(IProcessEntity entity) {
+	public void addProcessEntity(ProcEntity<?> entity) {
 		SQLiteDatabase database = getWritableDatabase();
 		ContentValues values = new ContentValues();
 		
@@ -107,7 +107,7 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 			@Override
 			public EntityRow next() {
 				EntityRow row = new EntityRow();
-				row.mEntity = (IProcessEntity) ProcessEntity.getInstance( cursor.getString(0) );
+				row.mEntity = (ProcEntity) ProcStat.getInstance(cursor.getString(0));
 				row.mTime = cursor.getLong(1);
 				
 				// Move the cursor
@@ -125,12 +125,12 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 	
 	public static class EntityRow {
 		
-		protected IProcessEntity mEntity;
+		protected ProcEntity<?> mEntity;
 		protected long mTime = 0;
 		
 		protected EntityRow() {}
 		
-		public IProcessEntity getEntity() {
+		public ProcEntity<?> getEntity() {
 			return mEntity;
 		}
 		
