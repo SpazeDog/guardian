@@ -25,6 +25,7 @@ import android.graphics.drawable.Drawable;
 
 import com.spazedog.guardian.R;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.utils.JSONParcel;
 
 public class EntityLinux extends ProcEntity<EntityLinux> {
 
@@ -73,6 +74,14 @@ public class EntityLinux extends ProcEntity<EntityLinux> {
 
         protected LinuxDataLoader(Context context) {
             super(context);
+        }
+
+        @Override
+        public JSONParcel getJSONParcel() {
+            JSONParcel parcel = new JSONParcel();
+            parcel.writeJSONParcelable(EntityLinux.this);
+
+            return parcel;
         }
 
         @Override

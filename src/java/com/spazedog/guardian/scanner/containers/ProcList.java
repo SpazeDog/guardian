@@ -23,6 +23,8 @@ package com.spazedog.guardian.scanner.containers;
 import android.os.Parcel;
 import android.util.Log;
 
+import com.spazedog.guardian.utils.JSONParcel;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ProcList<T extends ProcList<T>> extends ProcStat<T> implements Iterable<ProcEntity<?>> {
+public abstract class ProcList<T extends ProcList> extends ProcStat<T> implements Iterable<ProcEntity<?>> {
 
     private final List<ProcEntity<?>> mOrderedEntities = new ArrayList<ProcEntity<?>>();
     private final Map<Integer, ProcEntity<?>> mMappedEntities = new HashMap<Integer, ProcEntity<?>>();
@@ -144,42 +146,27 @@ public abstract class ProcList<T extends ProcList<T>> extends ProcStat<T> implem
 	 */
 
     @Override
-    public JSONObject writeToJSON() {
-        try {
-            JSONObject out = super.writeToJSON();
+    public void writeToJSON(JSONParcel out) {
+        super.writeToJSON(out);
 
-            if (mOrderedEntities.size() > 0) {
-                JSONArray jsonEntities = new JSONArray();
+        out.writeInt(mOrderedEntities.size());
 
-                for (ProcEntity<?> entity: mOrderedEntities) {
-                    jsonEntities.put(entity.writeToJSON());
-                }
-
-                out.put("entities", jsonEntities);
-            }
-
-            return out;
-
-        } catch (JSONException e) {
-            Log.e(getClass().getName(), e.getMessage(), e);
+        for (ProcEntity<?> entity: mOrderedEntities) {
+            out.writeJSONParcelable(entity);
         }
-
-        return null;
     }
 
     @Override
-    public void readFromJSON(JSONObject in) {
+    public void readFromJSON(JSONParcel in) {
         super.readFromJSON(in);
 
         try {
-            if (!in.isNull("entities")) {
-                JSONArray jsonEntities = new JSONArray(in.optString("entities"));
+            int size = in.readInt();
 
-                for (int i=0; i < jsonEntities.length(); i++) {
-                    ProcEntity<?> entity = (ProcEntity<?>) ProcEntity.getInstance(jsonEntities.optString(i));
+            for (int i=0; i < size; i++) {
+                ProcEntity<?> entity = (ProcEntity<?>) in.readJSONParcelable(ProcEntity.class.getClassLoader());
 
-                    addEntity(entity);
-                }
+                addEntity(entity);
             }
 
         } catch (JSONException e) {

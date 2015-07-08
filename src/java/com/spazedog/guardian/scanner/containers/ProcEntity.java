@@ -31,12 +31,13 @@ import android.util.Log;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.guardian.utils.JSONParcel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class ProcEntity<T extends ProcEntity<T>> extends ProcStat<T> implements Comparable<ProcEntity<?>> {
+public abstract class ProcEntity<T extends ProcEntity> extends ProcStat<T> implements Comparable<ProcEntity<?>> {
 
     protected String mEntityName;
     protected int mEntityImportance = 0;
@@ -214,94 +215,40 @@ public abstract class ProcEntity<T extends ProcEntity<T>> extends ProcStat<T> im
      */
 
     @Override
-    public JSONObject writeToJSON() {
+    public void writeToJSON(JSONParcel out) {
+        super.writeToJSON(out);
+
         try {
-            JSONObject out = super.writeToJSON();
-
-            if (mEntityName != null) {
-                out.put("mEntityName", mEntityName);
-            }
-
-            out.put("mEntityUid", mEntityUid);
-            out.put("mEntityPid", mEntityPid);
-            out.put("mEntityImportance", mEntityImportance);
-
-            JSONArray jsonArray = new JSONArray();
-            for (int i=0; i < mEntityUTime.length; i++) {
-                jsonArray.put(mEntityUTime[i]);
-            }
-            out.put("mEntityUTime", jsonArray);
-
-            jsonArray = new JSONArray();
-            for (int i=0; i < mEntitySTime.length; i++) {
-                jsonArray.put(mEntitySTime[i]);
-            }
-            out.put("mEntitySTime", jsonArray);
-
-            jsonArray = new JSONArray();
-            for (int i=0; i < mEntityCUTime.length; i++) {
-                jsonArray.put(mEntityCUTime[i]);
-            }
-            out.put("mEntityCUTime", jsonArray);
-
-            jsonArray = new JSONArray();
-            for (int i=0; i < mEntityCSTime.length; i++) {
-                jsonArray.put(mEntityCSTime[i]);
-            }
-            out.put("mEntityCSTime", jsonArray);
-
-            jsonArray = new JSONArray();
-            for (int i=0; i < mEntityUptime.length; i++) {
-                jsonArray.put(mEntityUptime[i]);
-            }
-            out.put("mEntityUptime", jsonArray);
-
-            return out;
+            out.writeValue(mEntityName);
+            out.writeInt(mEntityUid);
+            out.writeInt(mEntityPid);
+            out.writeInt(mEntityImportance);
+            out.writeLongArray(mEntityUTime);
+            out.writeLongArray(mEntitySTime);
+            out.writeLongArray(mEntityCUTime);
+            out.writeLongArray(mEntityCSTime);
+            out.writeLongArray(mEntityUptime);
 
         } catch (JSONException e) {
             Log.e(getClass().getName(), e.getMessage(), e);
         }
-
-        return null;
     }
 
     @Override
-    public void readFromJSON(JSONObject in) {
+    public void readFromJSON(JSONParcel in) {
         super.readFromJSON(in);
 
         try {
-            if (!in.isNull("mEntityName")) {
-                mEntityName = in.optString("mEntityName");
-            }
+            mEntityName = (String) in.readValue(String.class.getClassLoader());
+            mEntityUid = in.readInt();
+            mEntityPid = in.readInt();
+            mEntityImportance = in.readInt();
 
-            mEntityUid = in.optInt("mEntityUid");
-            mEntityPid = in.optInt("mEntityPid");
-            mEntityImportance = in.optInt("mEntityImportance");
-
-            JSONArray jsonArray = new JSONArray(in.optString("mEntityUTime"));
-            for (int i=0; i < mEntityUTime.length; i++) {
-                mEntityUTime[i] = jsonArray.optLong(i);
-            }
-
-            jsonArray = new JSONArray(in.optString("mEntitySTime"));
-            for (int i=0; i < mEntitySTime.length; i++) {
-                mEntitySTime[i] = jsonArray.optLong(i);
-            }
-
-            jsonArray = new JSONArray(in.optString("mEntityCUTime"));
-            for (int i=0; i < mEntityCUTime.length; i++) {
-                mEntityCUTime[i] = jsonArray.optLong(i);
-            }
-
-            jsonArray = new JSONArray(in.optString("mEntityCSTime"));
-            for (int i=0; i < mEntityCSTime.length; i++) {
-                mEntityCSTime[i] = jsonArray.optLong(i);
-            }
-
-            jsonArray = new JSONArray(in.optString("mEntityUptime"));
-            for (int i=0; i < mEntityUptime.length; i++) {
-                mEntityUptime[i] = jsonArray.optLong(i);
-            }
+            mEntityUTime = in.readLongArray();
+            mEntitySTime = in.readLongArray();
+            mEntityCUTime = in.readLongArray();
+            mEntityCSTime = in.readLongArray();
+            mEntityUptime = in.readLongArray();
 
         } catch (JSONException e) {
             Log.e(getClass().getName(), e.getMessage(), e);
@@ -318,7 +265,7 @@ public abstract class ProcEntity<T extends ProcEntity<T>> extends ProcStat<T> im
 	 * ------------------------------------------------------------------------------------------------------------
 	 */
 
-    public static abstract class DataLoader<L extends DataLoader<L>> {
+    public static abstract class DataLoader<L extends DataLoader> {
 
         protected Context mContext;
 
@@ -326,6 +273,7 @@ public abstract class ProcEntity<T extends ProcEntity<T>> extends ProcStat<T> im
             mContext = context.getApplicationContext();
         }
 
+        public abstract JSONParcel getJSONParcel();
         public abstract Drawable getPackageDrawable();
         public abstract String getPackageName();
         public abstract String getPackageLabel();

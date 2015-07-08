@@ -33,6 +33,7 @@ import android.util.Log;
 
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.utils.JSONParcel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -172,83 +173,30 @@ public class EntityAndroid extends ProcEntity<EntityAndroid> {
 	 */
 
     @Override
-    public JSONObject loadToJSON(Context context) {
-		/*
-		 * This is useful when storing in a database.
-		 * This package might no longer be installed when this is used,
-		 * this will make sure to load and store important info.
-		 */
-        try {
-            JSONObject out = super.loadToJSON(context);
+    public void writeToJSON(JSONParcel out) {
+        super.writeToJSON(out);
 
-            if (out != null) {
-                AndroidDataLoader loader = getDataLoader(context);
+        out.writeString(mEntityPackageName);
+        out.writeString(mEntityPackageLabel);
+        out.writeInt(mEntityCallingPid);
+        out.writeInt(mProcessLockInfo != null ? 1 : 0);
 
-                out.put("mEntityPackageName", loader.getPackageName());
-                out.put("mEntityPackageLabel", loader.getPackageLabel());
-                out.put("mEntityCallingPid", loader.getCallingProcessId());
-            }
-
-            return out;
-
-        } catch (JSONException e) {
-            Log.e(EntityAndroid.class.getName(), e.getMessage(), e);
+        if (mProcessLockInfo != null) {
+            out.writeJSONParcelable(mProcessLockInfo);
         }
-
-        return null;
     }
 
     @Override
-    public JSONObject writeToJSON() {
-        try {
-            JSONObject out = super.writeToJSON();
-
-            if (out != null) {
-                if (mEntityPackageName != null) {
-                    out.put("mEntityPackageName", mEntityPackageName);
-                }
-
-                if (mEntityPackageLabel != null) {
-                    out.put("mEntityPackageLabel", mEntityPackageLabel);
-                }
-
-                if (mEntityCallingPid >= 0) {
-                    out.put("mEntityCallingPid", mEntityCallingPid);
-                }
-
-                if (mProcessLockInfo != null) {
-                    out.put("mProcessLockInfo", mProcessLockInfo.writeToJSON());
-                }
-
-                return out;
-            }
-
-        } catch (JSONException e) {
-            Log.e(EntityAndroid.class.getName(), e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    @Override
-    public void readFromJSON(JSONObject in) {
+    public void readFromJSON(JSONParcel in) {
         super.readFromJSON(in);
 
         try {
-            if (!in.isNull("mEntityPackageLabel")) {
-                mEntityPackageLabel = in.getString("mEntityPackageLabel");
-            }
+            mEntityPackageName = in.readString();
+            mEntityPackageLabel = in.readString();
+            mEntityCallingPid = in.readInt();
 
-            if (!in.isNull("mEntityPackageName")) {
-                mEntityPackageName = in.getString("mEntityPackageName");
-            }
-
-            if (!in.isNull("mEntityCallingPid")) {
-                mEntityCallingPid = in.getInt("mEntityCallingPid");
-            }
-
-            if (!in.isNull("mProcessLockInfo")) {
-                mProcessLockInfo = new ProcessLockInfo( new JSONObject( in.getString("mProcessLockInfo") ) );
+            if (in.readInt() > 0) {
+                mProcessLockInfo = (ProcessLockInfo) in.readJSONParcelable(ProcessLockInfo.class.getClassLoader());
             }
 
         } catch (JSONException e) {
@@ -276,6 +224,21 @@ public class EntityAndroid extends ProcEntity<EntityAndroid> {
 
         protected AndroidDataLoader(Context context) {
             super(context);
+        }
+
+        @Override
+        public JSONParcel getJSONParcel() {
+            /*
+             * Make sure that these values are there
+             */
+            mEntityPackageName = getPackageName();
+            mEntityPackageLabel = getPackageLabel();
+            mEntityCallingPid = getCallingProcessId();
+
+            JSONParcel parcel = new JSONParcel();
+            parcel.writeJSONParcelable(EntityAndroid.this);
+
+            return parcel;
         }
 
         protected RunningAppProcessInfo getAndroidAppInfo() {

@@ -25,6 +25,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.spazedog.guardian.utils.JSONParcel;
+import com.spazedog.guardian.utils.JSONParcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +35,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public abstract class ProcStat<T extends ProcStat<T>> implements Parcelable {
+public abstract class ProcStat<T extends ProcStat> implements Parcelable, JSONParcelable {
 
     protected long[] mStatUptime = new long[] {0l, 0l};
     protected long[] mStatIdle = new long[] {0l, 0l};
@@ -112,27 +115,83 @@ public abstract class ProcStat<T extends ProcStat<T>> implements Parcelable {
         in.readLongArray(mStatIdle);
     }
 
-    public static final Parcelable.Creator<ProcStat<?>> CREATOR = new Parcelable.Creator<ProcStat<?>>() {
+
+
+    /* ============================================================================================================
+     * ------------------------------------------------------------------------------------------------------------
+     *
+     * JSON IMPLEMENTATION
+     *
+     * ------------------------------------------------------------------------------------------------------------
+     */
+
+    public void writeToJSON(JSONParcel out) {
+        out.writeString(getClass().getName());
+        out.writeLongArray(mStatUptime);
+        out.writeLongArray(mStatIdle);
+    }
+
+    public void readFromJSON(JSONParcel in) {
+        try {
+            mStatUptime = in.readLongArray();
+            mStatIdle = in.readLongArray();
+
+        } catch (JSONException e) {
+            Log.e(getClass().getName(), e.getMessage(), e);
+        }
+    }
+
+
+
+    /* ============================================================================================================
+     * ------------------------------------------------------------------------------------------------------------
+     *
+     * JSON and Parcel creator
+     *
+     * ------------------------------------------------------------------------------------------------------------
+     */
+
+    protected static class Creator implements Parcelable.Creator<ProcStat<?>>, JSONParcelable.JSONCreator<ProcStat<?>> {
+
         @Override
         public ProcStat<?> createFromParcel(Parcel in) {
-            return getInstance(in);
+            String className = in.readString();
+            ProcStat<?> instance = getInstance(className);
+
+            instance.readFromParcel(in);
+
+            return instance;
+        }
+
+        @Override
+        public ProcStat<?> createFromJSON(JSONParcel in) {
+            try {
+                String className = in.readString();
+                ProcStat<?> instance = getInstance(className);
+
+                instance.readFromJSON(in);
+
+                return instance;
+
+            } catch (JSONException e) {
+                return null;
+            }
         }
 
         @Override
         public ProcStat<?>[] newArray(int size) {
-            return new ProcStat[size];
+            return new ProcStat<?>[size];
         }
-    };
+    }
 
-    public static ProcStat<?> getInstance(Parcel in) {
+    public static final Creator CREATOR = new Creator();
+
+    protected static ProcStat<?> getInstance(String className) {
         try {
-            Class<?> clazz = Class.forName(in.readString(), true, ProcStat.class.getClassLoader());
+            Class<?> clazz = Class.forName(className, true, ProcStat.class.getClassLoader());
             Constructor<?> constrcutor = clazz.getDeclaredConstructor();
 
-            ProcStat process = (ProcStat) constrcutor.newInstance();
-            process.readFromParcel(in);
-
-            return process;
+            return (ProcStat) constrcutor.newInstance();
 
         } catch (InstantiationException e) {
             Log.e(ProcStat.class.getName(), e.getMessage(), e);
@@ -148,106 +207,6 @@ public abstract class ProcStat<T extends ProcStat<T>> implements Parcelable {
 
         } catch (ClassNotFoundException e) {
             Log.e(ProcStat.class.getName(), e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-
-    /* ============================================================================================================
-     * ------------------------------------------------------------------------------------------------------------
-     *
-     * JSON IMPLEMENTATION
-     *
-     * ------------------------------------------------------------------------------------------------------------
-     */
-
-    public JSONObject loadToJSON(Context context) {
-        return writeToJSON();
-    }
-
-    public JSONObject writeToJSON() {
-        try {
-            JSONObject out = new JSONObject();
-            out.put("class", getClass().getName());
-
-            JSONArray jsonArray = new JSONArray();
-            for (int i=0; i < mStatUptime.length; i++) {
-                jsonArray.put(mStatUptime[i]);
-            }
-            out.put("mStatUptime", jsonArray);
-
-            jsonArray = new JSONArray();
-            for (int i=0; i < mStatIdle.length; i++) {
-                jsonArray.put(mStatIdle[i]);
-            }
-            out.put("mStatIdle", jsonArray);
-
-            return out;
-
-        } catch (JSONException e) {
-            Log.e(getClass().getName(), e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public void readFromJSON(JSONObject in) {
-        try {
-            JSONArray jsonArray = new JSONArray(in.optString("mStatUptime"));
-            for (int i=0; i < mStatUptime.length; i++) {
-                mStatUptime[i] = jsonArray.optLong(i);
-            }
-
-            jsonArray = new JSONArray(in.optString("mStatIdle"));
-            for (int i=0; i < mStatIdle.length; i++) {
-                mStatIdle[i] = jsonArray.optLong(i);
-            }
-
-        } catch (JSONException e) {
-            Log.e(getClass().getName(), e.getMessage(), e);
-        }
-    }
-
-    public static ProcStat<?> getInstance(String json) {
-        if (json != null) {
-            try {
-                return getInstance( new JSONObject(json) );
-
-            } catch (JSONException e) {
-                Log.e(ProcStat.class.getName(), e.getMessage(), e);
-            }
-        }
-
-        return null;
-    }
-
-    public static ProcStat<?> getInstance(JSONObject in) {
-        if (in != null) {
-            try {
-                Class<?> clazz = Class.forName(in.optString("class"), true, ProcStat.class.getClassLoader());
-                Constructor<?> constrcutor = clazz.getDeclaredConstructor();
-
-                ProcStat<?> process = (ProcStat<?>) constrcutor.newInstance();
-                process.readFromJSON(in);
-
-                return process;
-
-            } catch (InstantiationException e) {
-                Log.e(ProcStat.class.getName(), e.getMessage(), e);
-
-            } catch (IllegalAccessException e) {
-                Log.e(ProcStat.class.getName(), e.getMessage(), e);
-
-            } catch (InvocationTargetException e) {
-                Log.e(ProcStat.class.getName(), e.getMessage(), e);
-
-            } catch (NoSuchMethodException e) {
-                Log.e(ProcStat.class.getName(), e.getMessage(), e);
-
-            } catch (ClassNotFoundException e) {
-                Log.e(ProcStat.class.getName(), e.getMessage(), e);
-            }
         }
 
         return null;
