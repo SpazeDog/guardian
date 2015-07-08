@@ -176,6 +176,17 @@ public class EntityAndroid extends ProcEntity<EntityAndroid> {
     public void writeToJSON(JSONParcel out) {
         super.writeToJSON(out);
 
+        Context context = out.getContext();
+        if (context != null) {
+            AndroidDataLoader dataLoader = getDataLoader(context);
+            /*
+             * Make sure that these values are there
+             */
+            mEntityPackageName = dataLoader.getPackageName();
+            mEntityPackageLabel = dataLoader.getPackageLabel();
+            mEntityCallingPid = dataLoader.getCallingProcessId();
+        }
+
         out.writeString(mEntityPackageName);
         out.writeString(mEntityPackageLabel);
         out.writeInt(mEntityCallingPid);
@@ -228,14 +239,7 @@ public class EntityAndroid extends ProcEntity<EntityAndroid> {
 
         @Override
         public JSONParcel getJSONParcel() {
-            /*
-             * Make sure that these values are there
-             */
-            mEntityPackageName = getPackageName();
-            mEntityPackageLabel = getPackageLabel();
-            mEntityCallingPid = getCallingProcessId();
-
-            JSONParcel parcel = new JSONParcel();
+            JSONParcel parcel = new JSONParcel(mContext);
             parcel.writeJSONParcelable(EntityAndroid.this);
 
             return parcel;

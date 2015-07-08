@@ -78,7 +78,7 @@ public class EntityLinux extends ProcEntity<EntityLinux> {
 
         @Override
         public JSONParcel getJSONParcel() {
-            JSONParcel parcel = new JSONParcel();
+            JSONParcel parcel = new JSONParcel(mContext);
             parcel.writeJSONParcelable(EntityLinux.this);
 
             return parcel;

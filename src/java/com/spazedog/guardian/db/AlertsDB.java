@@ -25,9 +25,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.spazedog.guardian.db.AlertsDB.EntityRow;
+import com.spazedog.guardian.backend.containers.ThresholdItem;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
-import com.spazedog.guardian.scanner.containers.ProcStat;
 import com.spazedog.guardian.utils.JSONParcel;
 
 import org.json.JSONException;
@@ -35,9 +34,9 @@ import org.json.JSONException;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 
-public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
+public class AlertsDB extends SQLiteOpenHelper implements Iterable<AlertsDB.ThresholdItemRow> {
 	
-	private static final Integer DATABASE_VERSION = 1;
+	private static final Integer DATABASE_VERSION = 2;
 	private static final String DATABASE_NAME = "alert_cache";
 	private static final String TABLE_NAME = "alerts";
 	
@@ -67,22 +66,23 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 	
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		
-	}
-	
-	public void clearProcessEntities() {
+        db.delete(TABLE_NAME, null, null);
+    }
+
+    public void clear() {
 		SQLiteDatabase database = getWritableDatabase();
 		
 		database.delete(TABLE_NAME, null, null);
 		database.close();
 	}
 	
-	public void addProcessEntity(ProcEntity<?> entity) {
+	public void addThresholdItem(ThresholdItem thresholdItem) {
 		SQLiteDatabase database = getWritableDatabase();
 		ContentValues values = new ContentValues();
+		ProcEntity<?> entity = thresholdItem.getEntity();
 		
 		values.put(COLUMN_PROCESS, entity.getProcessName());
-        values.put(COLUMN_ENTITY, entity.getDataLoader(mContext.get()).getJSONParcel().toString());
+        values.put(COLUMN_ENTITY, thresholdItem.getJSONParcel(mContext.get()).toString());
 		values.put(COLUMN_DATE, System.currentTimeMillis());
 		
 		database.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
@@ -90,11 +90,11 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 	}
 	
 	@Override
-	public Iterator<EntityRow> iterator() {
+	public Iterator<ThresholdItemRow> iterator() {
 		SQLiteDatabase database = getReadableDatabase();
 		final Cursor cursor = database.rawQuery(String.format("SELECT %s, %s FROM %s ORDER BY %s DESC", COLUMN_ENTITY, COLUMN_DATE, TABLE_NAME, COLUMN_DATE), null);
 		
-		return new Iterator<EntityRow>() {
+		return new Iterator<ThresholdItemRow>() {
 			
 			private Boolean mHasNext;
 			
@@ -108,11 +108,11 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 			}
 			
 			@Override
-			public EntityRow next() {
-				EntityRow row = new EntityRow();
+			public ThresholdItemRow next() {
+				ThresholdItemRow row = new ThresholdItemRow();
 
 				try {
-					row.mEntity = new JSONParcel(cursor.getString(0)).readJSONParcelable(ProcEntity.class.getClassLoader());
+					row.mThresholdItem = new JSONParcel(cursor.getString(0)).readJSONParcelable(ThresholdItem.class.getClassLoader());
                     row.mTime = cursor.getLong(1);
 
 				} catch (JSONException e) {}
@@ -130,15 +130,15 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 		};
 	}
 	
-	public static class EntityRow {
+	public static class ThresholdItemRow {
 		
-		protected ProcEntity<?> mEntity;
+		protected ThresholdItem mThresholdItem;
 		protected long mTime = 0;
 		
-		protected EntityRow() {}
+		protected ThresholdItemRow() {}
 		
-		public ProcEntity<?> getEntity() {
-			return mEntity;
+		public ThresholdItem getThresholdItem() {
+			return mThresholdItem;
 		}
 		
 		public long getTime() {
