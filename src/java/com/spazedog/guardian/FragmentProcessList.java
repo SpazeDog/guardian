@@ -35,9 +35,9 @@ import android.view.ViewGroup;
 import com.spazedog.guardian.AdapterProcessList.OnItemClickListener;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.application.Settings;
-import com.spazedog.guardian.scanner.IProcess.IProcessList;
 import com.spazedog.guardian.scanner.ProcessScanner;
 import com.spazedog.guardian.scanner.ProcessScanner.ScanMode;
+import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.utils.AbstractHandler;
 import com.spazedog.guardian.utils.AbstractThread;
@@ -45,7 +45,7 @@ import com.spazedog.guardian.utils.AbstractThread;
 public class FragmentProcessList extends AbstractFragment implements OnItemClickListener {
 	
 	protected static class UsageWorker extends AbstractThread<FragmentProcessList> {
-		IProcessList mCachedScanner;
+		ProcList<?> mCachedScanner;
 		
 		public UsageWorker(FragmentProcessList reference) {
 			super(reference);
@@ -68,7 +68,7 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 				fragment.mUsageHandler.obtainMessage(0, mCachedScanner).sendToTarget(); mCachedScanner = null;
 				
 			} else {
-				IProcessList scanner = ProcessScanner.execute(controller, mode, fragment.mSystemProcess);
+				ProcList<?> scanner = ProcessScanner.execute(controller, mode, fragment.mSystemProcess);
 				
 				if (scanner != null && (!isInterrupted() || fragment.mRecyclerAdapter.getItemCount() == 0)) {
 					if (!isInterrupted() && (!isLocked() || fragment.mRecyclerAdapter.getItemCount() == 0)) {
@@ -100,7 +100,7 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		@Override
 		public void handleMessage(Message msg) {
 			FragmentProcessList fragment = getReference();
-			IProcessList scanner = (IProcessList) msg.obj;
+			ProcList<?> scanner = (ProcList<?>) msg.obj;
 			
 			if (fragment != null && fragment.mRecyclerView != null && scanner != null) {		
 				fragment.mRecyclerAdapter.updateDataSet(scanner);
@@ -116,7 +116,7 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 	protected UsageWorker mUsageWorker;
 	protected UsageHandler mUsageHandler;
     
-	protected IProcessList mSystemProcess;
+	protected ProcList<?> mSystemProcess;
 	
 	protected Snackbar mSnackBar;
     

@@ -19,9 +19,6 @@
 
 package com.spazedog.guardian.db;
 
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -29,8 +26,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.spazedog.guardian.db.AlertsDB.EntityRow;
-import com.spazedog.guardian.scanner.IProcessEntity;
-import com.spazedog.guardian.scanner.IProcessEntity.ProcessEntity;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcStat;
+import com.spazedog.guardian.utils.JSONParcel;
+
+import org.json.JSONException;
+
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 
 public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 	
@@ -74,12 +77,12 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 		database.close();
 	}
 	
-	public void addProcessEntity(IProcessEntity entity) {
+	public void addProcessEntity(ProcEntity<?> entity) {
 		SQLiteDatabase database = getWritableDatabase();
 		ContentValues values = new ContentValues();
 		
 		values.put(COLUMN_PROCESS, entity.getProcessName());
-		values.put(COLUMN_ENTITY, entity.loadToJSON( mContext.get() ).toString());
+        values.put(COLUMN_ENTITY, entity.getDataLoader(mContext.get()).getJSONParcel().toString());
 		values.put(COLUMN_DATE, System.currentTimeMillis());
 		
 		database.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
@@ -107,8 +110,12 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 			@Override
 			public EntityRow next() {
 				EntityRow row = new EntityRow();
-				row.mEntity = (IProcessEntity) ProcessEntity.getInstance( cursor.getString(0) );
-				row.mTime = cursor.getLong(1);
+
+				try {
+					row.mEntity = new JSONParcel(cursor.getString(0)).readJSONParcelable(ProcEntity.class.getClassLoader());
+                    row.mTime = cursor.getLong(1);
+
+				} catch (JSONException e) {}
 				
 				// Move the cursor
 				mHasNext = cursor.moveToNext();
@@ -125,12 +132,12 @@ public class AlertsDB extends SQLiteOpenHelper implements Iterable<EntityRow> {
 	
 	public static class EntityRow {
 		
-		protected IProcessEntity mEntity;
+		protected ProcEntity<?> mEntity;
 		protected long mTime = 0;
 		
 		protected EntityRow() {}
 		
-		public IProcessEntity getEntity() {
+		public ProcEntity<?> getEntity() {
 			return mEntity;
 		}
 		

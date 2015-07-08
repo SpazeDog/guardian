@@ -19,9 +19,6 @@
 
 package com.spazedog.guardian.scanner;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
@@ -30,7 +27,11 @@ import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
-import com.spazedog.guardian.scanner.IProcess.IProcessList;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProcessScanner {
 	
@@ -74,13 +75,13 @@ public class ProcessScanner {
 	 * ============================================================
 	 */
 		
-	public static IProcessList execute(Context context, ScanMode mode, IProcessList processList) {
+	public static ProcList<?> execute(Context context, ScanMode mode, ProcList<?> processList) {
 		if (hasLibrary()) {
 			List<Integer> tempList = new ArrayList<Integer>();
 			int[] pidList = null;
 			
 			if (mode == ScanMode.EVALUATE_COLLECTION && processList != null) {
-				for (IProcessEntity entity : processList) {
+				for (ProcEntity<?> entity : processList) {
 					tempList.add(entity.getProcessId());
 					tempList.add(entity.getProcessUid());
 					tempList.add(entity.getImportance());
@@ -107,8 +108,8 @@ public class ProcessScanner {
 			String[][] statCollection = getProcessList(pidList, mode != ScanMode.COLLECT_PROCESSES);
 			
 			if (statCollection.length > 0) {
-				ProcessSystem systemProcess = new ProcessSystem();
-				systemProcess.updateStat(statCollection[0], processList);
+                StatSystem systemProcess = new StatSystem();
+				systemProcess.updateStat(statCollection[0], StatSystem.cast(processList));
 				
 				List<ProcessLockInfo> processLockInfo = null;
 				WakeLockManager lockManager = ((Controller) context.getApplicationContext()).getWakeLockManager();
@@ -121,24 +122,33 @@ public class ProcessScanner {
 						int type = Integer.valueOf(stats[0]);
 						int uid = Integer.valueOf(stats[1]);
 						int pid = Integer.valueOf(stats[2]);
-						
-						IProcessEntity oldEntity = processList != null ? processList.findEntity(pid) : null;
-						IProcessEntity newEntity = type > 0 ? new ProcessEntityAndroid() : new ProcessEntityLinux();
-						newEntity.updateStat(stats, oldEntity);
-						
-						if (processLockInfo != null && type > 0) {
-							for (ProcessLockInfo lockInfo : processLockInfo) {
-								/*
-								 * It is much faster to compare two int values than long string values. 
-								 * But one uid might have multiple processes, so we need to check this to, but no need if the uid does not match. 
-								 */
-								if (lockInfo.getUid() == uid && !lockInfo.isBroken() && lockInfo.getProcessName().equals(newEntity.getProcessName())) {
-									((ProcessEntityAndroid) newEntity).updateLocks(lockInfo); break;
-								}
-							}
-						}
-						
-						systemProcess.addEntity(newEntity);
+
+                        ProcEntity<?> oldEntity = processList != null ? processList.findEntity(pid) : null;
+
+                        if (type > 0) {
+                            EntityAndroid newEntity = new EntityAndroid();
+                            ProcessLockInfo newLockInfo = null;
+
+                            if (processLockInfo != null) {
+                                for (ProcessLockInfo lockInfo : processLockInfo) {
+                                    /*
+                                     * It is much faster to compare two int values than long string values.
+                                     * But one uid might have multiple processes, so we need to check this to, but no need if the uid does not match.
+                                     */
+                                    if (lockInfo.getUid() == uid && !lockInfo.isBroken() && lockInfo.getProcessName().equals(newEntity.getProcessName())) {
+                                        newLockInfo = lockInfo; break;
+                                    }
+                                }
+                            }
+
+                            newEntity.updateStat(stats, EntityAndroid.cast(oldEntity), newLockInfo);
+                            systemProcess.addEntity(newEntity);
+
+                        } else {
+                            EntityLinux newEntity = new EntityLinux();
+                            newEntity.updateStat(stats, EntityLinux.cast(oldEntity));
+                            systemProcess.addEntity(newEntity);
+                        }
 					}
 				}
 				

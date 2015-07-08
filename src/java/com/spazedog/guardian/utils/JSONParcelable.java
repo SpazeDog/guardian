@@ -1,6 +1,6 @@
 /*
  * This file is part of the Guardian Project: https://github.com/spazedog/guardian
- *  
+ *
  * Copyright (c) 2015 Daniel Bergløv
  *
  * Guardian is free software: you can redistribute it and/or modify
@@ -17,32 +17,15 @@
  * along with Guardian. If not, see <http://www.gnu.org/licenses/>
  */
 
-package com.spazedog.guardian.scanner;
+package com.spazedog.guardian.utils;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 
-import com.spazedog.guardian.R;
-import com.spazedog.guardian.scanner.IProcessEntity.ProcessEntity;
+public interface JSONParcelable {
 
-public class ProcessEntityLinux extends ProcessEntity {
-	
-	protected ProcessEntityLinux() {
-		super();
-	}
+    public void writeToJSON(JSONParcel dest);
 
-	@Override
-	public Drawable loadPackageDrawable(Context context) {
-		return context.getResources().getDrawable(R.drawable.process_icon);
-	}
-
-	@Override
-	public String loadPackageName(Context context) {
-		return null;
-	}
-
-	@Override
-	public String loadPackageLabel(Context context) {
-		return null;
-	}
+    public interface JSONCreator<T> {
+        public T createFromJSON(JSONParcel source);
+        public T[] newArray(int size);
+    }
 }

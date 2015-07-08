@@ -19,13 +19,6 @@
 
 package com.spazedog.guardian.backend;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -52,13 +45,20 @@ import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.backend.xposed.WakeLockService.WakeLockInfo;
 import com.spazedog.guardian.db.AlertsDB;
-import com.spazedog.guardian.scanner.IProcess.IProcessList;
-import com.spazedog.guardian.scanner.IProcessEntity;
-import com.spazedog.guardian.scanner.ProcessEntityAndroid;
+import com.spazedog.guardian.scanner.EntityAndroid;
 import com.spazedog.guardian.scanner.ProcessScanner;
 import com.spazedog.guardian.scanner.ProcessScanner.ScanMode;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.lib.rootfw4.RootFW;
 import com.spazedog.lib.rootfw4.Shell;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class MonitorWorker {
 	
@@ -163,7 +163,7 @@ public class MonitorWorker {
 			
 			for (int i=0; i < size; i++) {
 				int key = in.readInt();
-				ThresholdItem value = (ThresholdItem) in.readParcelable(null);
+				ThresholdItem value = (ThresholdItem) in.readParcelable(ThresholdItem.class.getClassLoader());
 				
 				mMap.put(key, value);
 			}
@@ -208,7 +208,7 @@ public class MonitorWorker {
 	public void start() {
 		ThresholdMap lastThresholdData = mData.getParcelable("evaluate");
 		ScanMode mode = mSettings.monitorLinux() ? ScanMode.COLLECT_PROCESSES : ScanMode.COLLECT_APPLICATIONS;
-		IProcessList processList = ProcessScanner.execute(mController, mode, (IProcessList) mData.getParcelable("processes"));
+		ProcList<?> processList = ProcessScanner.execute(mController, mode, (ProcList<?>) mData.getParcelable("processes"));
 		boolean scanWakelocks = !mIsInteractive && mController.getWakeLockManager() != null;
 		
 		Common.LOG.Debug(this, "Beginning analizing the scan result, Process Count = " + (processList != null ? processList.getEntitySize() : 0) + ", Evaluation Count = " + (lastThresholdData != null ? lastThresholdData.size() : 0));
@@ -220,11 +220,11 @@ public class MonitorWorker {
 			if ((!validThreshold || !validWakelocks) && lastThresholdData != null) {
 				Common.LOG.Debug(this, "Checking possible rough processes, Rough Count = " + mThresholdData.size());
 				
-				Set<Pair<IProcessEntity, ThresholdItem>> alertList = new HashSet<Pair<IProcessEntity, ThresholdItem>>();
+				Set<Pair<? extends ProcEntity<?>, ThresholdItem>> alertList = new HashSet<Pair<? extends ProcEntity<?>, ThresholdItem>>();
 				
 				for (Entry<Integer, ThresholdItem> thresholdEntry : lastThresholdData.entrySet()) {
 					int pid = thresholdEntry.getKey();
-					IProcessEntity entity = processList.findEntity(pid);
+					ProcEntity<?> entity = processList.findEntity(pid);
 					ThresholdItem lastThresholdItem = thresholdEntry.getValue();
 					ThresholdItem newThresholdItem = mThresholdData.remove(pid);
 					
@@ -288,14 +288,14 @@ public class MonitorWorker {
 		}
 	}
 	
-	protected boolean checkProcessThreshold(IProcessList processList) {
+	protected boolean checkProcessThreshold(ProcList<?> processList) {
 		double cpuUsage = processList.getCpuUsage();
 		boolean valid = true;
 		
 		if (processList != null && (cpuUsage > mThreshold || (cpuUsage > 0 && Constants.ENABLE_REPORT_TESTING))) {
 			Common.LOG.Debug(this, "The CPU is above the threshold, CPU Usage = " + cpuUsage + "%, CPU Threshold = " + mThreshold + "%");
 			
-			for (IProcessEntity entity : processList) {
+			for (ProcEntity<?> entity : processList) {
 				boolean important = isProcessImportant(entity.getImportance());
 				double usage = entity.getCpuUsage();
 				
@@ -328,13 +328,15 @@ public class MonitorWorker {
 		return valid;
 	}
 	
-	protected boolean checkProcessWakelocks(IProcessList processList) {
+	protected boolean checkProcessWakelocks(ProcList<?> processList) {
 		long lockTime = mSettings.getServiceWakeLockTime();
 		boolean valid = true;
 		
-		for (IProcessEntity entity : processList) {
-			if (entity.getImportance() > 0) {
-				ProcessLockInfo lockInfo = ((ProcessEntityAndroid) entity).getProcessLockInfo();
+		for (ProcEntity<?> entity : processList) {
+            EntityAndroid androidEntity = EntityAndroid.cast(entity);
+
+			if (androidEntity != null) {
+				ProcessLockInfo lockInfo = androidEntity.getProcessLockInfo();
 				
 				if (lockInfo != null) {
 					List<WakeLockInfo> wakeLocks = lockInfo.getWakeLocks();
@@ -380,7 +382,7 @@ public class MonitorWorker {
 								importance == RunningAppProcessInfo.IMPORTANCE_VISIBLE);
 	}
 	
-	protected void sendUserAlert(Set<Pair<IProcessEntity, ThresholdItem>> entityList) {
+	protected void sendUserAlert(Set<Pair<? extends ProcEntity<?>, ThresholdItem>> entityList) {
 		Intent intent = new Intent(mController, ActivityLaunch.class);
 		intent.putExtra("tab.id", "tab_process_alerts");
 		
@@ -402,7 +404,7 @@ public class MonitorWorker {
 		
 		AlertsDB db = new AlertsDB(mController);
 		
-		for (Pair<IProcessEntity, ThresholdItem> pair : entityList) {
+		for (Pair<? extends ProcEntity<?>, ThresholdItem> pair : entityList) {
 			db.addProcessEntity(pair.first);
 		}
 		
@@ -411,14 +413,14 @@ public class MonitorWorker {
 		String thresholdAction = mSettings.getServiceAction(mIsInteractive);
 		String lockAction = mSettings.getServiceWakeLockAction();
 		
-		for (Pair<IProcessEntity, ThresholdItem> pair : entityList) {
-			IProcessEntity entity = pair.first;
+		for (Pair<? extends ProcEntity<?>, ThresholdItem> pair : entityList) {
+            ProcEntity<?> entity = pair.first;
 			ThresholdItem thesholdItem = pair.second;
 			
 			if (thesholdItem.CPU_USAGE_INVALID && !"notify".equals(thresholdAction)) {
 				Common.LOG.Debug(this, "Force closing process, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName());
 				
-				String packageName = entity.loadPackageLabel(mController);
+				String packageName = entity.getDataLoader(mController).getPackageLabel();
 				int importance = entity.getImportance();
 				
 				/*
@@ -427,10 +429,7 @@ public class MonitorWorker {
 				 * TODO: 
 				 * 			Indicate in the log that an action was taken
 				 */
-				boolean perceptible = packageName != null && 
-						(importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND ||
-								importance == RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE ||
-										importance == RunningAppProcessInfo.IMPORTANCE_VISIBLE || importance == 0);
+				boolean perceptible = packageName != null && entity.isPerceptible();
 				
 				if (!thresholdAction.equals("reboot") && (!perceptible || mSettings.isRootEnabled())) {
 					if (mSettings.isRootEnabled() && RootFW.connect() && RootFW.isRoot()) {

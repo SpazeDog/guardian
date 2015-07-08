@@ -99,7 +99,9 @@ public class FragmentAlertList extends AbstractFragment {
 		AlertsDB db = new AlertsDB(getActivity());
 		
 		for (EntityRow row : db) {
-			list.add(row);
+			if (row.getEntity() != null) {
+				list.add(row);
+			}
 		}
 		
 		db.close();

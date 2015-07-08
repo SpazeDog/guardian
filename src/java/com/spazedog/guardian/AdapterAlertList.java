@@ -19,8 +19,6 @@
 
 package com.spazedog.guardian;
 
-import java.lang.ref.WeakReference;
-
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.RecyclerView;
@@ -33,7 +31,10 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.db.AlertsDB.EntityRow;
-import com.spazedog.guardian.scanner.IProcessEntity;
+import com.spazedog.guardian.scanner.containers.ProcEntity;
+import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
+
+import java.lang.ref.WeakReference;
 
 public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.ViewHolder> {
 	
@@ -85,13 +86,14 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 	public void onBindViewHolder(ViewHolder holder, int position) {
 		Controller controller = mController.get();
 		EntityRow row = mRows[position];
-		IProcessEntity entity = row.getEntity();
+		ProcEntity<?> entity = row.getEntity();
+        DataLoader entityData = entity.getDataLoader(controller);
 
-		holder.textLabel.setText(entity.loadPackageLabel(controller));
+		holder.textLabel.setText(entityData.getPackageLabel());
 		holder.textName.setText(entity.getProcessName());
 		holder.textUsage.setText( (entity.getCpuUsage() + "%") );
 		holder.textDate.setText( DateUtils.formatDateTime(controller, row.getTime(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME) );
-		holder.image.setImageBitmap( loadIcon(entity) );
+		holder.image.setImageBitmap( loadIcon(entityData) );
 	}
 
 	@Override
@@ -105,12 +107,12 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 		notifyDataSetChanged();
 	}
 	
-	protected Bitmap loadIcon(IProcessEntity entity) {
-		String cacheId = entity.getImportance() > 0 ? entity.loadPackageName(mController.get()) : "linux:process";
+	protected Bitmap loadIcon(DataLoader entityData) {
+		String cacheId = entityData.getImportance() > 0 ? entityData.getPackageName() : "linux:process";
 		Bitmap bitmap = mImageCache.get(cacheId);
 		
 		if (bitmap == null) {
-			mImageCache.put(cacheId, (bitmap = entity.loadPackageBitmap(mController.get(), 60f, 60f)));
+			mImageCache.put(cacheId, (bitmap = entityData.getPackageBitmap(60f, 60f)));
 		}
 		
 		return bitmap;

@@ -19,6 +19,31 @@
 
 package com.spazedog.guardian.backend.xposed;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Binder;
+import android.os.Build;
+import android.os.IBinder;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Log;
+
+import com.spazedog.guardian.Common.LOG;
+import com.spazedog.guardian.Constants;
+import com.spazedog.guardian.utils.JSONParcel;
+import com.spazedog.guardian.utils.JSONParcelable;
+import com.spazedog.lib.reflecttools.ReflectClass;
+import com.spazedog.lib.reflecttools.ReflectException;
+import com.spazedog.lib.reflecttools.ReflectMember.Match;
+import com.spazedog.lib.reflecttools.ReflectMethod;
+import com.spazedog.lib.reflecttools.bridge.MethodBridge;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,27 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Build;
-import android.os.IBinder;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Log;
-
-import com.spazedog.guardian.Common.LOG;
-import com.spazedog.guardian.Constants;
-import com.spazedog.lib.reflecttools.ReflectClass;
-import com.spazedog.lib.reflecttools.ReflectException;
-import com.spazedog.lib.reflecttools.ReflectMember.Match;
-import com.spazedog.lib.reflecttools.ReflectMethod;
-import com.spazedog.lib.reflecttools.bridge.MethodBridge;
 
 public class WakeLockService extends IRWakeLockService.Stub {
 	protected boolean mIsInteractive = true;
@@ -332,16 +336,22 @@ public class WakeLockService extends IRWakeLockService.Stub {
 	public void srv_releaseForPid(int pid) {
 		Set<IBinder> cache = new HashSet<IBinder>();
 		ReflectMethod releaseMethod = mInstance.findMethod(mHasPowerPackage ? "releaseWakeLockInternal" : "releaseWakeLock", Match.BEST, IBinder.class, Integer.TYPE);
-		
-		for (Entry<IBinder, WakeLockInfo> entry : mWakeLockInfo.entrySet()) {
-			if (entry.getValue().getPid() == pid) {
-				cache.add(entry.getKey());
-			}
-		}
+
+        synchronized(mWakeLockInfo) {
+            for (Entry<IBinder, WakeLockInfo> entry : mWakeLockInfo.entrySet()) {
+                if (entry.getValue().getPid() == pid) {
+                    cache.add(entry.getKey());
+                }
+            }
+        }
+
+        long callingId = Binder.clearCallingIdentity();
 		
 		for (IBinder identifier : cache) {
 			releaseMethod.invoke(identifier, 0);
 		}
+
+        Binder.restoreCallingIdentity(callingId);
 	}
 	
 	@Override
@@ -355,7 +365,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	}
 	
-	public static class ProcessLockInfo implements Parcelable {
+	public static class ProcessLockInfo implements Parcelable, JSONParcelable {
 		private boolean mParcelMatches = true;
 		private String mProcessName;
 		private int mUid = 0;
@@ -369,23 +379,19 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			return 0;
 		}
 		
-		public JSONObject writeToJSON() {
+		public void writeToJSON(JSONParcel out) {
 			try {
-				JSONObject out = new JSONObject();
-				out.put("mParcelMatches", mParcelMatches);
-				out.put("mUid", mUid);
-				out.put("mProcessName", mProcessName);
-				out.put("mLockTime", mLockTime);
-				out.put("mLockTimeOn", mLockTimeOn);
-				out.put("mLockTimeOff", mLockTimeOff);
-				
-				return out;
+                out.writeInt(mParcelMatches ? 1 : 0);
+                out.writeInt(mUid);
+                out.writeString(mProcessName);
+                out.writeLong(mLockTime);
+                out.writeLong(mLockTimeOn);
+                out.writeLong(mLockTimeOff);
+                out.writeList(mWakeLocks);
 				
 			} catch (JSONException e) {
 				Log.e(getClass().getName(), e.getMessage(), e);
 			}
-			
-			return null;
 		}
 
 		@Override
@@ -399,14 +405,15 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			out.writeTypedList(mWakeLocks);
 		}
 		
-		public ProcessLockInfo(JSONObject in) {
+		public ProcessLockInfo(JSONParcel in) {
 			try {
-				mParcelMatches = in.getBoolean("mParcelMatches");
-				mUid = in.getInt("mUid");
-				mProcessName = in.getString("mProcessName");
-				mLockTime = in.getLong("mLockTime");
-				mLockTimeOn = in.getLong("mLockTimeOn");
-				mLockTimeOff = in.getLong("mLockTimeOff");
+                mParcelMatches = in.readInt() > 0;
+                mUid = in.readInt();
+                mProcessName = in.readString();
+                mLockTime = in.readLong();
+                mLockTimeOn = in.readLong();
+                mLockTimeOff = in.readLong();
+                in.fillList(mWakeLocks);
 				
 			} catch (JSONException e) {
 				Log.e(getClass().getName(), e.getMessage(), e);
@@ -417,8 +424,8 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			mParcelMatches = in.readInt() == Constants.SERVICE_PARCEL_ID;
 			
 			if (mParcelMatches) {
-				mUid = in.readInt();
-				mProcessName = in.readString();
+                mUid = in.readInt();
+                mProcessName = in.readString();
 				mLockTime = in.readLong();
 				mLockTimeOn = in.readLong();
 				mLockTimeOff = in.readLong();
@@ -488,20 +495,27 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			return mWakeLocks;
 		}
 		
-		public static final Parcelable.Creator<ProcessLockInfo> CREATOR = new Parcelable.Creator<ProcessLockInfo>() {
-			@Override
-			public ProcessLockInfo createFromParcel(Parcel in) {
-				return new ProcessLockInfo(in);
-			}
-			
-			@Override
-			public ProcessLockInfo[] newArray(int size) {
-				return new ProcessLockInfo[size];
-			}
-		};
+		public static final Creator CREATOR = new Creator();
+
+        protected static class Creator implements Parcelable.Creator<ProcessLockInfo>, JSONParcelable.JSONCreator<ProcessLockInfo> {
+            @Override
+            public ProcessLockInfo createFromParcel(Parcel in) {
+                return new ProcessLockInfo(in);
+            }
+
+            @Override
+            public ProcessLockInfo createFromJSON(JSONParcel in) {
+                return new ProcessLockInfo(in);
+            }
+
+            @Override
+            public ProcessLockInfo[] newArray(int size) {
+                return new ProcessLockInfo[size];
+            }
+        }
 	}
 	
-	public static class WakeLockInfo implements Parcelable {
+	public static class WakeLockInfo implements Parcelable, JSONParcelable {
 		private boolean mParcelMatches = true;
 		private String mTag;
 		private int mPid = 0;
@@ -514,23 +528,13 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			return 0;
 		}
 		
-		public JSONObject writeToJSON() {
-			try {
-				JSONObject out = new JSONObject();
-				out.put("mParcelMatches", mParcelMatches);
-				out.put("mTag", mTag);
-				out.put("mPid", mPid);
-				out.put("mFlags", mFlags);
-				out.put("mTimestamp", mTimestamp);
-				out.put("mTime", mTime);
-				
-				return out;
-				
-			} catch (JSONException e) {
-				Log.e(getClass().getName(), e.getMessage(), e);
-			}
-			
-			return null;
+		public void writeToJSON(JSONParcel out) {
+            out.writeInt( mParcelMatches ? 1 : 0 );
+            out.writeString(mTag);
+            out.writeInt(mPid);
+            out.writeInt(mFlags);
+            out.writeLong(mTimestamp);
+            out.writeLong(mTime);
 		}
 
 		@Override
@@ -543,14 +547,14 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			out.writeLong(mTime);
 		}
 		
-		public WakeLockInfo(JSONObject in) {
+		public WakeLockInfo(JSONParcel in) {
 			try {
-				mParcelMatches = in.getBoolean("mParcelMatches");
-				mTag = in.getString("mTag");
-				mPid = in.getInt("mPid");
-				mFlags = in.getInt("mFlags");
-				mTimestamp = in.getLong("mTimestamp");
-				mTime = in.getLong("mTime");
+                mParcelMatches = in.readInt() > 0;
+                mTag = in.readString();
+                mPid = in.readInt();
+                mFlags = in.readInt();
+                mTimestamp = in.readLong();
+                mTime = in.readLong();
 				
 			} catch (JSONException e) {
 				Log.e(getClass().getName(), e.getMessage(), e);
@@ -609,17 +613,24 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		public long getTimestamp() {
 			return mTimestamp;
 		}
-		
-		public static final Parcelable.Creator<WakeLockInfo> CREATOR = new Parcelable.Creator<WakeLockInfo>() {
-			@Override
-			public WakeLockInfo createFromParcel(Parcel in) {
-				return new WakeLockInfo(in);
-			}
-			
-			@Override
-			public WakeLockInfo[] newArray(int size) {
-				return new WakeLockInfo[size];
-			}
-		};
+
+        public static final Creator CREATOR = new Creator();
+
+        protected static class Creator implements Parcelable.Creator<WakeLockInfo>, JSONParcelable.JSONCreator<WakeLockInfo> {
+            @Override
+            public WakeLockInfo createFromParcel(Parcel in) {
+                return new WakeLockInfo(in);
+            }
+
+            @Override
+            public WakeLockInfo createFromJSON(JSONParcel in) {
+                return new WakeLockInfo(in);
+            }
+
+            @Override
+            public WakeLockInfo[] newArray(int size) {
+                return new WakeLockInfo[size];
+            }
+        }
 	}
 }
