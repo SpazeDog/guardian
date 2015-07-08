@@ -20,6 +20,8 @@
 package com.spazedog.guardian.utils;
 
 
+import android.content.Context;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -48,13 +50,30 @@ public class JSONParcel {
     protected static final Map<ClassLoader, Map<String, JSONParcelable.JSONCreator>> mCreatorCache = new HashMap<ClassLoader, Map<String, JSONParcelable.JSONCreator>>();
     protected JSONArray mData = new JSONArray();
     protected int mSeek = 0;
+    protected Context mContext;
 
     public JSONParcel() {
 
     }
 
+    public JSONParcel(Context context) {
+        if (context != null) {
+            mContext = context.getApplicationContext();
+        }
+    }
+
     public JSONParcel(String json) throws JSONException {
+        this(json, null);
+    }
+
+    public JSONParcel(String json, Context context) throws JSONException {
+        this(context);
+
         mData = new JSONArray(json);
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     public JSONParcelable[] readJSONParcelableArray() throws JSONException {

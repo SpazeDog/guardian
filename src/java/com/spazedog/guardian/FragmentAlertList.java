@@ -34,7 +34,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.db.AlertsDB;
-import com.spazedog.guardian.db.AlertsDB.EntityRow;
+import com.spazedog.guardian.db.AlertsDB.ThresholdItemRow;
 import com.spazedog.guardian.utils.AbstractFragment;
 
 public class FragmentAlertList extends AbstractFragment {
@@ -79,10 +79,10 @@ public class FragmentAlertList extends AbstractFragment {
 			case R.id.menu_btn_clear:
 				if (mRecyclerAdapter.getItemCount() > 0) {
 					AlertsDB db = new AlertsDB(getActivity());
-					db.clearProcessEntities();
+					db.clear();
 					db.close();
 					
-					mRecyclerAdapter.updateDataSet( new EntityRow[0] );
+					mRecyclerAdapter.updateDataSet( new ThresholdItemRow[0] );
 				}
 				
 				return true;
@@ -95,17 +95,17 @@ public class FragmentAlertList extends AbstractFragment {
 	public void onResume() {
 		super.onResume();
 		
-		List<EntityRow> list = new ArrayList<EntityRow>();
+		List<ThresholdItemRow> list = new ArrayList<ThresholdItemRow>();
 		AlertsDB db = new AlertsDB(getActivity());
 		
-		for (EntityRow row : db) {
-			if (row.getEntity() != null) {
+		for (ThresholdItemRow row : db) {
+			if (row.getThresholdItem() != null) {
 				list.add(row);
 			}
 		}
 		
 		db.close();
 		
-		mRecyclerAdapter.updateDataSet( list.toArray(new EntityRow[list.size()]) );
+		mRecyclerAdapter.updateDataSet( list.toArray(new ThresholdItemRow[list.size()]) );
 	}
 }

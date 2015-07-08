@@ -30,7 +30,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
-import com.spazedog.guardian.db.AlertsDB.EntityRow;
+import com.spazedog.guardian.backend.containers.ThresholdItem;
+import com.spazedog.guardian.db.AlertsDB.ThresholdItemRow;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 
@@ -65,7 +66,7 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 	
 	protected WeakReference<Controller> mController;
 	protected LruCache<String, Bitmap> mImageCache;
-	protected EntityRow[] mRows;
+	protected ThresholdItemRow[] mRows;
 	
 	public AdapterAlertList(Controller controller) {
 		mController = new WeakReference<Controller>(controller);
@@ -85,8 +86,9 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
 		Controller controller = mController.get();
-		EntityRow row = mRows[position];
-		ProcEntity<?> entity = row.getEntity();
+		ThresholdItemRow row = mRows[position];
+		ThresholdItem thresholdItem = row.getThresholdItem();
+		ProcEntity<?> entity = thresholdItem.getEntity();
         DataLoader entityData = entity.getDataLoader(controller);
 
 		holder.textLabel.setText(entityData.getPackageLabel());
@@ -101,7 +103,7 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 		return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Common.resolveAttr(parent.getContext(), R.attr.layout_adapterAlertListItem), parent, false));
 	}
 	
-	public void updateDataSet(EntityRow[] rows) {
+	public void updateDataSet(ThresholdItemRow[] rows) {
 		mRows = rows;
 		
 		notifyDataSetChanged();
