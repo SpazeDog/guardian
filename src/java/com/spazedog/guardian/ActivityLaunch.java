@@ -37,6 +37,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.utils.AbstractActivity;
+import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.utils.AbstractFragmentDialog;
 
 public class ActivityLaunch extends AbstractActivity implements OnNavigationItemSelectedListener {
@@ -186,18 +187,13 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 
 	@Override
 	public boolean onNavigationItemSelected(MenuItem item) {
-		Fragment fragment = null;
-		
-		switch (item.getItemId()) {
-			case R.id.navigation_process_overview: fragment = new FragmentProcessList(); break;
-			case R.id.navigation_recent_alerts: fragment = new FragmentAlertList(); break;
-			case R.id.navigation_configuration: fragment = new FragmentConfiguration(); break;
-			default: return false;
-		}
+        Fragment fragment = getFragment(item.getItemId());
 
-		loadFragment("" + item.getTitleCondensed(), fragment, false);
-		
-		return true;
+        if (fragment != null) {
+            loadFragment("" + item.getTitleCondensed(), fragment, false); return true;
+        }
+
+        return false;
 	}
 	
 	protected void setupNavigation() {
@@ -238,4 +234,16 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 			mToolbarTopView.setNavigationIcon(null);
 		}
 	}
+
+    public AbstractFragment getFragment(int id) {
+        switch (id) {
+            case R.id.fragment_alert_list: return new FragmentAlertList();
+            case R.id.fragment_configuration: return new FragmentConfiguration();
+            case R.id.fragment_navigation_header: return new FragmentNavigationHeader();
+            case R.id.fragment_process_details: return new FragmentProcessDetails();
+            case R.id.fragment_process_list: return new FragmentProcessList();
+            case R.id.fragment_white_list: return new FragmentWhiteList();
+            default: return null;
+        }
+    }
 }

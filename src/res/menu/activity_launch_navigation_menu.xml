@@ -6,19 +6,25 @@
         android:checkableBehavior="single">
         
         <item
-            android:id="@+id/navigation_process_overview"
+            android:id="@+id/fragment_process_list"
             android:title="Process Overview"
             android:titleCondensed="Overview"
             android:icon="@drawable/ic_list_black_24dp" />
         
         <item
-            android:id="@+id/navigation_recent_alerts"
+            android:id="@+id/fragment_alert_list"
             android:title="Recent Alerts"
             android:titleCondensed="Alerts"
             android:icon="@drawable/ic_warning_black_24dp" />
+
+        <item
+            android:id="@+id/fragment_white_list"
+            android:title="Whitelist"
+            android:titleCondensed="Whitelist"
+            android:icon="@drawable/ic_grade_black_24dp" />
         
         <item
-            android:id="@+id/navigation_configuration"
+            android:id="@+id/fragment_configuration"
             android:title="Configuration"
             android:titleCondensed="Config"
             android:icon="@drawable/ic_settings_black_24dp" />

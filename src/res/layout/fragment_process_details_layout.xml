@@ -82,7 +82,38 @@
 			</LinearLayout>
 		    
 		</LinearLayout>
-		
+
+        <LinearLayout
+            style="?attr/cardViewStyle"
+            android:id="@+id/process_group_options"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="?attr/contentPaddingHorizontal"
+                android:layout_marginRight="?attr/contentPaddingHorizontal"
+                android:layout_marginTop="?attr/contentPaddingVertical"
+                android:layout_marginBottom="?attr/contentPaddingVertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleGrouped"
+                    android:text="Options"
+                    android:layout_marginBottom="14dip" />
+
+                <com.spazedog.guardian.views.CheckBoxWidget
+                    android:id="@+id/process_item_whitelist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:title_text="Whitelist" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
 		<LinearLayout
 			style="?attr/cardViewStyle"
 			android:id="@+id/process_group_wakelock"

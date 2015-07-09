@@ -33,11 +33,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.spazedog.guardian.db.AlertsDB;
-import com.spazedog.guardian.db.AlertsDB.ThresholdItemRow;
+import com.spazedog.guardian.AdapterAlertList.OnItemClickListener;
+import com.spazedog.guardian.db.AlertListDB;
+import com.spazedog.guardian.db.AlertListDB.ThresholdItemRow;
 import com.spazedog.guardian.utils.AbstractFragment;
 
-public class FragmentAlertList extends AbstractFragment {
+public class FragmentAlertList extends AbstractFragment implements OnItemClickListener {
 	
 	protected RecyclerView mRecyclerView;
 	protected AdapterAlertList mRecyclerAdapter;
@@ -62,6 +63,7 @@ public class FragmentAlertList extends AbstractFragment {
 		mRecyclerView = (RecyclerView) view.findViewById(R.id.alert_list);
 		mRecyclerLayoutManager = new LinearLayoutManager(getActivity());
 		mRecyclerAdapter = new AdapterAlertList(getController());
+        mRecyclerAdapter.setOnItemClickListener(this);
 		mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
 		mRecyclerView.setAdapter(mRecyclerAdapter);
 	}
@@ -78,9 +80,8 @@ public class FragmentAlertList extends AbstractFragment {
 		switch (item.getItemId()) {
 			case R.id.menu_btn_clear:
 				if (mRecyclerAdapter.getItemCount() > 0) {
-					AlertsDB db = new AlertsDB(getActivity());
+                    AlertListDB db = getSettings().getAlertListDatabase();
 					db.clear();
-					db.close();
 					
 					mRecyclerAdapter.updateDataSet( new ThresholdItemRow[0] );
 				}
@@ -96,7 +97,7 @@ public class FragmentAlertList extends AbstractFragment {
 		super.onResume();
 		
 		List<ThresholdItemRow> list = new ArrayList<ThresholdItemRow>();
-		AlertsDB db = new AlertsDB(getActivity());
+        AlertListDB db = getSettings().getAlertListDatabase();
 		
 		for (ThresholdItemRow row : db) {
 			if (row.getThresholdItem() != null) {
@@ -104,8 +105,18 @@ public class FragmentAlertList extends AbstractFragment {
 			}
 		}
 		
-		db.close();
-		
 		mRecyclerAdapter.updateDataSet( list.toArray(new ThresholdItemRow[list.size()]) );
 	}
+
+    @Override
+    public void onItemClick(ThresholdItemRow row, int position) {
+        ActivityLaunch activity = (ActivityLaunch) getActivity();
+        AbstractFragment fragment = activity.getFragment(R.id.fragment_process_details);
+        Bundle bundle = new Bundle();
+
+        bundle.putParcelable("entity", row.getThresholdItem().getEntity());
+        fragment.setArguments(bundle);
+
+        ((ActivityLaunch) getActivity()).loadFragment("Details", fragment, true);
+    }
 }

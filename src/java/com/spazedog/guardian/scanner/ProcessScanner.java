@@ -22,6 +22,7 @@ package com.spazedog.guardian.scanner;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
+import android.util.Log;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Controller;
@@ -122,6 +123,7 @@ public class ProcessScanner {
 						int type = Integer.valueOf(stats[0]);
 						int uid = Integer.valueOf(stats[1]);
 						int pid = Integer.valueOf(stats[2]);
+                        String processName = stats[3];
 
                         ProcEntity<?> oldEntity = processList != null ? processList.findEntity(pid) : null;
 
@@ -135,7 +137,7 @@ public class ProcessScanner {
                                      * It is much faster to compare two int values than long string values.
                                      * But one uid might have multiple processes, so we need to check this to, but no need if the uid does not match.
                                      */
-                                    if (lockInfo.getUid() == uid && !lockInfo.isBroken() && lockInfo.getProcessName().equals(newEntity.getProcessName())) {
+                                    if (lockInfo.getUid() == uid && !lockInfo.isBroken() && lockInfo.getProcessName().equals(processName)) {
                                         newLockInfo = lockInfo; break;
                                     }
                                 }

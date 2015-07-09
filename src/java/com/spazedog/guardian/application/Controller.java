@@ -75,18 +75,27 @@ public class Controller extends Application implements ApplicationImpl, ISetting
 		super.onCreate();
 		
 		mServiceHandler = new ServiceHandler(this);
-		mSettings = new Settings(this);
-		mWakelockManager = WakeLockManager.getInstance();
-		mServiceControl = MonitorServiceControl.getInstance(this, mSettings.getServiceEngine());
-		
-		/*
-		 * mServiceControl needs to be configured before adding settings listener. 
-		 * When adding the listener, LISTENER_ADDED will be invoked, which in turn 
+
+        instantiateSettings();
+	}
+
+    protected void instantiateSettings() {
+        mSettings = new Settings(this);
+
+        instantiateServiceControl();
+
+        /*
+		 * mServiceControl needs to be configured before adding settings listener.
+		 * When adding the listener, LISTENER_ADDED will be invoked, which in turn
 		 * will invoke either startService() or stopService()
 		 */
-		mServiceControl.setMonitorServiceListener(this);
-		mSettings.addListener(this);
-	}
+        mServiceControl.setMonitorServiceListener(this);
+        mSettings.addListener(this);
+    }
+
+    protected void instantiateServiceControl() {
+        mServiceControl = MonitorServiceControl.getInstance(this, mSettings.getServiceEngine());
+    }
 
 	@SuppressWarnings("incomplete-switch")
 	@Override
@@ -124,6 +133,10 @@ public class Controller extends Application implements ApplicationImpl, ISetting
     }
 	
 	public WakeLockManager getWakeLockManager() {
+        if (mWakelockManager == null) {
+            mWakelockManager = WakeLockManager.getInstance();
+        }
+
         return mWakelockManager;
 	}
 	

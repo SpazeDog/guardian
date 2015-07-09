@@ -142,6 +142,8 @@
     <attr name="layout_adapterProcessListItem" format="reference" />
     <attr name="layout_fragmentAlertListLayout" format="reference" />
     <attr name="layout_adapterAlertListItem" format="reference" />
+    <attr name="layout_fragmentWhitelistListLayout" format="reference" />
+    <attr name="layout_adapterWhitelistListItem" format="reference" />
     <attr name="layout_viewGroupedLayout" format="reference" />
     <attr name="layout_viewWidgetLayout" format="reference" />
     <attr name="layout_viewCheckboxWidget" format="reference" />
