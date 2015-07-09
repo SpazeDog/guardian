@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	style="?attr/cardViewStyle"
     android:orientation="vertical">
     
 	<LinearLayout
+        android:id="@+id/process_item_clickable"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:orientation="vertical"
 	    android:layout_marginLeft="?attr/contentPaddingHorizontal"
 	    android:layout_marginRight="?attr/contentPaddingHorizontal"
 	    android:layout_marginTop="?attr/contentPaddingVertical"
-	    android:layout_marginBottom="?attr/contentPaddingVertical">
+	    android:layout_marginBottom="?attr/contentPaddingVertical"
+        android:focusable="true"
+        android:clickable="true"
+        android:background="?attr/itemSelectableBackground">
     
 		<LinearLayout
 		    android:layout_width="match_parent"
@@ -48,6 +52,13 @@
 			</LinearLayout>
 	
 		</LinearLayout>
+
+        <TextView
+            android:id="@+id/process_item_explain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="?attr/contentPaddingVertical"
+            android:textAppearance="?attr/textAppearanceSummary" />
 		
 		<RelativeLayout 
 		    android:layout_width="match_parent"

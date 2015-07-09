@@ -33,11 +33,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.spazedog.guardian.AdapterAlertList.OnItemClickListener;
 import com.spazedog.guardian.db.AlertsDB;
 import com.spazedog.guardian.db.AlertsDB.ThresholdItemRow;
 import com.spazedog.guardian.utils.AbstractFragment;
 
-public class FragmentAlertList extends AbstractFragment {
+public class FragmentAlertList extends AbstractFragment implements OnItemClickListener {
 	
 	protected RecyclerView mRecyclerView;
 	protected AdapterAlertList mRecyclerAdapter;
@@ -62,6 +63,7 @@ public class FragmentAlertList extends AbstractFragment {
 		mRecyclerView = (RecyclerView) view.findViewById(R.id.alert_list);
 		mRecyclerLayoutManager = new LinearLayoutManager(getActivity());
 		mRecyclerAdapter = new AdapterAlertList(getController());
+        mRecyclerAdapter.setOnItemClickListener(this);
 		mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
 		mRecyclerView.setAdapter(mRecyclerAdapter);
 	}
@@ -108,4 +110,15 @@ public class FragmentAlertList extends AbstractFragment {
 		
 		mRecyclerAdapter.updateDataSet( list.toArray(new ThresholdItemRow[list.size()]) );
 	}
+
+    @Override
+    public void onItemClick(ThresholdItemRow row, int position) {
+        FragmentProcessDetails fragment = new FragmentProcessDetails();
+        Bundle bundle = new Bundle();
+
+        bundle.putParcelable("entity", row.getThresholdItem().getEntity());
+        fragment.setArguments(bundle);
+
+        ((ActivityLaunch) getActivity()).loadFragment("Details", fragment, true);
+    }
 }

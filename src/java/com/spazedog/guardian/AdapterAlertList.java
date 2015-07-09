@@ -25,6 +25,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -37,25 +38,24 @@ import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 
 import java.lang.ref.WeakReference;
 
-public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.ViewHolder> {
-	
-	/*
-	 * TODO:
-	 * 			Link this to FragmentProcessDetails
-	 */
-	
+public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.ViewHolder> implements OnClickListener {
+
 	protected static class ViewHolder extends RecyclerView.ViewHolder {
 		public TextView textLabel;
 		public TextView textName;
 		public TextView textUsage;
 		public TextView textDate;
+        public TextView textExplain;
 		public ImageView image;
+        public View rootView;
 		
 		public ViewHolder(View view) {
 			super(view);
 			
 			Common.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
 
+            rootView = view.findViewById(R.id.process_item_clickable);
+            textExplain = (TextView) view.findViewById(R.id.process_item_explain);
 			textLabel = (TextView) view.findViewById(R.id.process_item_label);
 			textName = (TextView) view.findViewById(R.id.process_item_name);
 			textUsage = (TextView) view.findViewById(R.id.process_item_usage);
@@ -63,8 +63,13 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 			image = (ImageView) view.findViewById(R.id.process_item_img);
 		}
 	}
+
+	public static interface OnItemClickListener {
+		void onItemClick(ThresholdItemRow row, int position);
+	}
 	
 	protected WeakReference<Controller> mController;
+    protected OnItemClickListener mListener;
 	protected LruCache<String, Bitmap> mImageCache;
 	protected ThresholdItemRow[] mRows;
 	
@@ -94,14 +99,64 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 		holder.textLabel.setText(entityData.getPackageLabel());
 		holder.textName.setText(entity.getProcessName());
 		holder.textUsage.setText( (entity.getCpuUsage() + "%") );
-		holder.textDate.setText( DateUtils.formatDateTime(controller, row.getTime(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME) );
-		holder.image.setImageBitmap( loadIcon(entityData) );
+		holder.textDate.setText(DateUtils.formatDateTime(controller, row.getTime(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
+		holder.image.setImageBitmap(loadIcon(entityData));
+
+        holder.rootView.setOnClickListener(this);
+        holder.rootView.setTag(position);
+
+        int flags = thresholdItem.getFlags();
+        String explain = null;
+
+        if ((flags & ThresholdItem.FLAG_WAKELOCK) == ThresholdItem.FLAG_WAKELOCK) {
+            explain = "WakeLock was detected exceeding permitted time";
+
+        } else {
+            explain = "CPU usage was detected above the threshold";
+        }
+
+        if ((flags & ThresholdItem.FLAG_ACTION_KILLED) == ThresholdItem.FLAG_ACTION_KILLED) {
+            explain += ". The process was killed";
+
+        } else if ((flags & ThresholdItem.FLAG_ACTION_REBOOTED) == ThresholdItem.FLAG_ACTION_REBOOTED) {
+            explain += ". The device was rebooted";
+
+        } else if ((flags & ThresholdItem.FLAG_ACTION_RELEASED) == ThresholdItem.FLAG_ACTION_RELEASED) {
+            explain += ". The WakeLock was released";
+
+        } else {
+            explain += ". No action taken";
+        }
+
+        holder.textExplain.setText(explain);
 	}
+
+    @Override
+    public void onViewRecycled(ViewHolder holder) {
+        synchronized(this) {
+			/*
+			 * Release the bitmap to allow LruCache to decide it's fate
+			 */
+            holder.image.setImageDrawable(null);
+            holder.rootView.setOnClickListener(null);
+        }
+    }
 
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Common.resolveAttr(parent.getContext(), R.attr.layout_adapterAlertListItem), parent, false));
 	}
+
+    @Override
+    public void onClick(View view) {
+        int pos = (Integer) view.getTag();
+
+        mListener.onItemClick(mRows[pos], pos);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mListener = listener;
+    }
 	
 	public void updateDataSet(ThresholdItemRow[] rows) {
 		mRows = rows;

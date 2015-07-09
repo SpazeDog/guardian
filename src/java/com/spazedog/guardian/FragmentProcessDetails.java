@@ -169,25 +169,27 @@ public class FragmentProcessDetails extends AbstractFragment {
 	}
 	
 	public void createAndroidCaller(View view, AndroidDataLoader entityData) {
-		ProcEntity<?> callerEntity = mProcesses.findEntity(entityData.getCallingProcessId());
-		
-		if (callerEntity != null) {
-            DataLoader callerData = callerEntity.getDataLoader(getActivity());
-			View groupView = view.findViewById(R.id.process_group_caller);
-			groupView.setVisibility(View.VISIBLE);
-			
-			ImageView iconView = (ImageView) view.findViewById(R.id.process_caller_img);
-			iconView.setImageBitmap(callerData.getPackageBitmap(60, 60));
-			
-			String label = callerData.getPackageLabel();
-			if (label != null) {
-				TextView titleView = (TextView) view.findViewById(R.id.process_caller_label);
-				titleView.setText(label);
-			}
-			
-			TextView summaryView = (TextView) view.findViewById(R.id.process_caller_name);
-			summaryView.setText(callerEntity.getProcessName());
-		}
+        if (mProcesses != null) {
+            ProcEntity<?> callerEntity = mProcesses.findEntity(entityData.getCallingProcessId());
+
+            if (callerEntity != null) {
+                DataLoader callerData = callerEntity.getDataLoader(getActivity());
+                View groupView = view.findViewById(R.id.process_group_caller);
+                groupView.setVisibility(View.VISIBLE);
+
+                ImageView iconView = (ImageView) view.findViewById(R.id.process_caller_img);
+                iconView.setImageBitmap(callerData.getPackageBitmap(60, 60));
+
+                String label = callerData.getPackageLabel();
+                if (label != null) {
+                    TextView titleView = (TextView) view.findViewById(R.id.process_caller_label);
+                    titleView.setText(label);
+                }
+
+                TextView summaryView = (TextView) view.findViewById(R.id.process_caller_name);
+                summaryView.setText(callerEntity.getProcessName());
+            }
+        }
 	}
 	
 	public void killEntity() {
