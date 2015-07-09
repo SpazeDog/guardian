@@ -118,6 +118,8 @@
 	    <item name="layout_adapterProcessListItem">@layout/adaptor_process_list_item</item>
 	    <item name="layout_fragmentAlertListLayout">@layout/fragment_alert_list_layout</item>
 	    <item name="layout_adapterAlertListItem">@layout/adaptor_alert_list_item</item>
+        <item name="layout_fragmentWhitelistListLayout">@layout/fragment_whitelist_list_layout</item>
+        <item name="layout_adapterWhitelistListItem">@layout/adaptor_whitelist_list_item</item>
 	    <item name="layout_viewGroupedLayout">@layout/view_grouped_layout</item>
 	    <item name="layout_viewWidgetLayout">@layout/view_widget_layout</item>
 	    <item name="layout_viewCheckboxWidget">@layout/view_checkbox_widget</item>

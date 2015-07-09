@@ -153,6 +153,7 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 		mRecyclerAdapter.setOnItemClickListener(this);
 		mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
 		mRecyclerView.setAdapter(mRecyclerAdapter);
+        mRecyclerView.setItemAnimator(null);
 	}
 	
 	@Override

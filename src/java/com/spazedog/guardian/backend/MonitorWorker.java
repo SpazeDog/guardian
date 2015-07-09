@@ -25,6 +25,7 @@ import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.backend.xposed.WakeLockService.WakeLockInfo;
 import com.spazedog.guardian.db.AlertsDB;
+import com.spazedog.guardian.db.WhiteListDB;
 import com.spazedog.guardian.scanner.EntityAndroid;
 import com.spazedog.guardian.scanner.ProcessScanner;
 import com.spazedog.guardian.scanner.ProcessScanner.ScanMode;
@@ -45,6 +46,7 @@ public class MonitorWorker {
     protected int mThresholdValue;
     protected Bundle mDataBundle;
     protected ThresholdMap mThresholdData = new ThresholdMap();
+    protected WhiteListDB mWhiteListDatabase;
 
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
@@ -60,6 +62,7 @@ public class MonitorWorker {
                 || (android.os.Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn());
 
         mThresholdValue = mSettings.getServiceThreshold(mIsInteractive);
+        mWhiteListDatabase = mSettings.getWhiteListDatabase();
     }
 
     public void start() {
@@ -173,20 +176,25 @@ public class MonitorWorker {
                 double usage = entity.getCpuUsage();
 
                 if ((usage > mThresholdValue && !important) || (usage > 0 && Constants.ENABLE_REPORT_TESTING)) {
-                    Common.LOG.Debug(this, "Process detected above the threshold, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", CPU Usage = " + usage + "%, CPU Threshold = " + mThresholdValue + "%");
+                    if (!mWhiteListDatabase.hasEntity(entity.getProcessName())) {
+                        Common.LOG.Debug(this, "Process detected above the threshold, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", CPU Usage = " + usage + "%, CPU Threshold = " + mThresholdValue + "%");
 
-                    int pid = entity.getProcessId();
-                    ThresholdItem item = mThresholdData.get(pid);
-                    valid = false;
+                        int pid = entity.getProcessId();
+                        ThresholdItem item = mThresholdData.get(pid);
+                        valid = false;
 
-                    if (item == null) {
-                        item = new ThresholdItem(entity, ThresholdItem.FLAG_CPU);
+                        if (item == null) {
+                            item = new ThresholdItem(entity, ThresholdItem.FLAG_CPU);
+
+                        } else {
+                            item.setEntity(entity, item.getFlags() | ThresholdItem.FLAG_CPU);
+                        }
+
+                        mThresholdData.put(pid, item);
 
                     } else {
-                        item.setEntity(entity, item.getFlags()|ThresholdItem.FLAG_CPU);
+                        Common.LOG.Debug(this, "Process has been white listed, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", CPU Usage = " + usage + "%, CPU Threshold = " + mThresholdValue + "%");
                     }
-
-                    mThresholdData.put(pid, item);
                 }
             }
 
@@ -216,25 +224,30 @@ public class MonitorWorker {
 
                     for (WakeLockInfo wakeLock : wakeLocks) {
                         if (wakeLock.getTime() > lockTime || (wakeLock.getTime() > 0 && Constants.ENABLE_REPORT_TESTING)) {
-                            Common.LOG.Debug(this, "Active wakelock detected, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", Wakelock Time = " + wakeLock.getTime());
+                            if (!mWhiteListDatabase.hasEntity(entity.getProcessName())) {
+                                Common.LOG.Debug(this, "Active wakelock detected, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", Wakelock Time = " + wakeLock.getTime());
 
-                            int pid = entity.getProcessId();
-                            ThresholdItem item = mThresholdData.get(pid);
-                            valid = false;
+                                int pid = entity.getProcessId();
+                                ThresholdItem item = mThresholdData.get(pid);
+                                valid = false;
 
-                            if (item == null) {
-                                item = new ThresholdItem(entity, ThresholdItem.FLAG_WAKELOCK);
+                                if (item == null) {
+                                    item = new ThresholdItem(entity, ThresholdItem.FLAG_WAKELOCK);
+
+                                } else {
+                                    item.setEntity(entity, item.getFlags()|ThresholdItem.FLAG_WAKELOCK);
+                                }
+
+                                mThresholdData.put(pid, item);
+
+                                /*
+                                 * We only need to know if one of it's locks has been required to long
+                                 */
+                                break;
 
                             } else {
-                                item.setEntity(entity, item.getFlags()|ThresholdItem.FLAG_WAKELOCK);
+                                Common.LOG.Debug(this, "Process has been white listed, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", Wakelock Time = " + wakeLock.getTime());
                             }
-
-                            mThresholdData.put(pid, item);
-
-							/*
-							 * We only need to know if one of it's locks has been required to long
-							 */
-                            break;
                         }
                     }
                 }

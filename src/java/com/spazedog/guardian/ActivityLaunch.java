@@ -191,6 +191,7 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 		switch (item.getItemId()) {
 			case R.id.navigation_process_overview: fragment = new FragmentProcessList(); break;
 			case R.id.navigation_recent_alerts: fragment = new FragmentAlertList(); break;
+            case R.id.navigation_whitelist: fragment = new FragmentWhiteList(); break;
 			case R.id.navigation_configuration: fragment = new FragmentConfiguration(); break;
 			default: return false;
 		}

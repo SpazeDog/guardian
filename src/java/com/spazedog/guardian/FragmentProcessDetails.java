@@ -17,16 +17,19 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.application.Settings;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
+import com.spazedog.guardian.db.WhiteListDB;
 import com.spazedog.guardian.scanner.EntityAndroid;
 import com.spazedog.guardian.scanner.EntityAndroid.AndroidDataLoader;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.guardian.utils.AbstractFragment;
+import com.spazedog.guardian.views.CheckBoxWidget;
 import com.spazedog.guardian.views.TextboxWidget;
+import com.spazedog.guardian.views.WidgetView;
 import com.spazedog.lib.rootfw4.RootFW;
 
-public class FragmentProcessDetails extends AbstractFragment {
+public class FragmentProcessDetails extends AbstractFragment implements WidgetView.WidgetChangeListener {
 	
 	/*
 	 * TODO: 	
@@ -37,6 +40,7 @@ public class FragmentProcessDetails extends AbstractFragment {
 	protected ProcList<?> mProcesses;
 	protected ProcEntity<?> mEntity;
 	protected Snackbar mSnackBar;
+    protected CheckBoxWidget mWhiteListCheckBox;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -57,6 +61,8 @@ public class FragmentProcessDetails extends AbstractFragment {
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
+        Settings settings = getSettings();
+        WhiteListDB db = settings.getWhiteListDatabase();
         DataLoader entityData = mEntity.getDataLoader(getActivity());
 
 		ImageView iconView = (ImageView) view.findViewById(R.id.process_item_img);
@@ -83,6 +89,9 @@ public class FragmentProcessDetails extends AbstractFragment {
 		if (mEntity.getImportance() > 0) {
 			createAndroidViews(view);
 		}
+
+        mWhiteListCheckBox = (CheckBoxWidget) view.findViewById(R.id.process_item_whitelist);
+        mWhiteListCheckBox.setChecked(db.hasEntity(mEntity.getProcessName()));
 	}
 	
 	@Override
@@ -117,6 +126,8 @@ public class FragmentProcessDetails extends AbstractFragment {
 	@Override
 	public void onPause() {
 		super.onPause();
+
+        mWhiteListCheckBox.setWidgetChangeListener(null);
 		
 		/*
 		 * Like most in the support libraries, this does not work properly. 
@@ -127,15 +138,21 @@ public class FragmentProcessDetails extends AbstractFragment {
 			mSnackBar = null;
 		}
 	}
-	
-	/*
-	 * TODO: 
-	 * 			This information should be build into the IProcessEntity interface.
-	 * 
-	 * 			Add info about packages contained in this process
-	 * 
-	 * 			Add into about services contained in this process
-	 */
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        mWhiteListCheckBox.setWidgetChangeListener(this);
+    }
+
+    /*
+         * TODO:
+         *
+         * 			Add info about packages contained in this process
+         *
+         * 			Add into about services contained in this process
+         */
 	public void createAndroidViews(View view) {
         EntityAndroid entity = EntityAndroid.cast(mEntity);
 
@@ -213,4 +230,20 @@ public class FragmentProcessDetails extends AbstractFragment {
 		
 		mSnackBar.show();
 	}
+
+    @Override
+    public void onWidgetChanged(WidgetView<?> view, Object newValue) {
+        if (view == mWhiteListCheckBox) {
+            Settings settings = getSettings();
+            WhiteListDB db = settings.getWhiteListDatabase();
+            boolean isChecked = (Boolean) newValue;
+
+            if (isChecked) {
+                db.addEntity(mEntity);
+
+            } else {
+                db.removeEntity(mEntity.getProcessName());
+            }
+        }
+    }
 }

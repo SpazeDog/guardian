@@ -16,6 +16,12 @@
             android:title="Recent Alerts"
             android:titleCondensed="Alerts"
             android:icon="@drawable/ic_warning_black_24dp" />
+
+        <item
+            android:id="@+id/navigation_whitelist"
+            android:title="Whitelist"
+            android:titleCondensed="Whitelist"
+            android:icon="@drawable/ic_grade_black_24dp" />
         
         <item
             android:id="@+id/navigation_configuration"

@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Message;
 
+import com.spazedog.guardian.db.WhiteListDB;
 import com.spazedog.guardian.utils.AbstractHandler;
 
 public class Settings implements ApplicationImpl {
@@ -87,12 +88,22 @@ public class Settings implements ApplicationImpl {
 	protected volatile String mSettingsServiceWakeLockAction;
 	
 	protected Set<ISettingsListener> mSettingsListeners = Collections.newSetFromMap(new WeakHashMap<ISettingsListener, Boolean>());
+
+    protected WhiteListDB mWhiteListDB;
 	
 	public Settings(Controller controller) {
 		mSettingsHandler = new SettingsHandler(this);
 		mController = new WeakReference<Controller>(controller);
 		mPreferences = controller.getSharedPreferences("settings", Context.MODE_PRIVATE);
 	}
+
+    public WhiteListDB getWhiteListDatabase() {
+        if (mWhiteListDB == null) {
+            mWhiteListDB = new WhiteListDB(getController());
+        }
+
+        return mWhiteListDB;
+    }
 
 	@Override
 	public Controller getController() {
