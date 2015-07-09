@@ -110,7 +110,8 @@ public class FragmentAlertList extends AbstractFragment implements OnItemClickLi
 
     @Override
     public void onItemClick(ThresholdItemRow row, int position) {
-        FragmentProcessDetails fragment = new FragmentProcessDetails();
+        ActivityLaunch activity = (ActivityLaunch) getActivity();
+        AbstractFragment fragment = activity.getFragment(R.id.fragment_process_details);
         Bundle bundle = new Bundle();
 
         bundle.putParcelable("entity", row.getThresholdItem().getEntity());

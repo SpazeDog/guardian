@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="fragment_alert_list" type="id" />
+    <item name="fragment_configuration" type="id" />
+    <item name="fragment_navigation_header" type="id" />
+    <item name="fragment_process_details" type="id" />
+    <item name="fragment_process_list" type="id" />
+    <item name="fragment_white_list" type="id" />
+
+</resources>

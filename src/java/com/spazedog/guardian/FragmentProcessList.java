@@ -247,13 +247,14 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 
 	@Override
 	public void onItemClick(View view, Integer position) {
-		FragmentProcessDetails fragment = new FragmentProcessDetails();
+        ActivityLaunch activity = (ActivityLaunch) getActivity();
+		AbstractFragment fragment = activity.getFragment(R.id.fragment_process_details);
 		Bundle bundle = new Bundle();
 		
 		bundle.putParcelable("entity", mSystemProcess.getEntity(position));
 		bundle.putParcelable("processes", mSystemProcess);
 		fragment.setArguments(bundle);
-		
-		((ActivityLaunch) getActivity()).loadFragment("Details", fragment, true);
+
+        activity.loadFragment("Details", fragment, true);
 	}
 }
