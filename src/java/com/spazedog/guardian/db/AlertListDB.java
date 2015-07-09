@@ -133,9 +133,6 @@ public class AlertListDB extends SQLiteOpenHelper implements Iterable<AlertListD
                         } catch (JSONException e) {
                         }
 
-                        // Move the cursor
-                        mHasNext = cursor.moveToNext();
-
                         return row;
                     }
                 }
