@@ -238,11 +238,11 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
     public AbstractFragment getFragment(int id) {
         switch (id) {
             case R.id.fragment_alert_list: return new FragmentAlertList();
-            case R.id.fragment_configuration: return new FragmentAlertList();
-            case R.id.fragment_navigation_header: return new FragmentAlertList();
-            case R.id.fragment_process_details: return new FragmentAlertList();
-            case R.id.fragment_process_list: return new FragmentAlertList();
-            case R.id.fragment_white_list: return new FragmentAlertList();
+            case R.id.fragment_configuration: return new FragmentConfiguration();
+            case R.id.fragment_navigation_header: return new FragmentNavigationHeader();
+            case R.id.fragment_process_details: return new FragmentProcessDetails();
+            case R.id.fragment_process_list: return new FragmentProcessList();
+            case R.id.fragment_white_list: return new FragmentWhiteList();
             default: return null;
         }
     }
