@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Message;
 
+import com.spazedog.guardian.db.AlertListDB;
 import com.spazedog.guardian.db.WhiteListDB;
 import com.spazedog.guardian.utils.AbstractHandler;
 
@@ -90,6 +91,7 @@ public class Settings implements ApplicationImpl {
 	protected Set<ISettingsListener> mSettingsListeners = Collections.newSetFromMap(new WeakHashMap<ISettingsListener, Boolean>());
 
     protected WhiteListDB mWhiteListDB;
+    protected AlertListDB mAlertListDB;
 	
 	public Settings(Controller controller) {
 		mSettingsHandler = new SettingsHandler(this);
@@ -103,6 +105,14 @@ public class Settings implements ApplicationImpl {
         }
 
         return mWhiteListDB;
+    }
+
+    public AlertListDB getAlertListDatabase() {
+        if (mAlertListDB == null) {
+            mAlertListDB = new AlertListDB(getController());
+        }
+
+        return mAlertListDB;
     }
 
 	@Override

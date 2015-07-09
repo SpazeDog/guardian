@@ -32,7 +32,7 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
-import com.spazedog.guardian.db.AlertsDB.ThresholdItemRow;
+import com.spazedog.guardian.db.AlertListDB.ThresholdItemRow;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 

@@ -22,17 +22,13 @@ package com.spazedog.guardian;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
-import com.spazedog.guardian.backend.containers.ThresholdItem;
-import com.spazedog.guardian.db.AlertsDB.ThresholdItemRow;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 

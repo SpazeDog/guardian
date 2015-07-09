@@ -24,7 +24,7 @@ import com.spazedog.guardian.backend.containers.ThresholdMap;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.backend.xposed.WakeLockService.WakeLockInfo;
-import com.spazedog.guardian.db.AlertsDB;
+import com.spazedog.guardian.db.AlertListDB;
 import com.spazedog.guardian.db.WhiteListDB;
 import com.spazedog.guardian.scanner.EntityAndroid;
 import com.spazedog.guardian.scanner.ProcessScanner;
@@ -331,7 +331,7 @@ public class MonitorWorker {
     protected void setActionFlags(Set<ThresholdItem> thresholdItems) {
         String thresholdAction = mSettings.getServiceAction(mIsInteractive);
         String lockAction = mSettings.getServiceWakeLockAction();
-        AlertsDB db = new AlertsDB(mController);
+        AlertListDB db = mSettings.getAlertListDatabase();
 
         for (ThresholdItem thresholdItem : thresholdItems) {
             int flags = thresholdItem.getFlags();
@@ -362,7 +362,5 @@ public class MonitorWorker {
 
             db.addThresholdItem(thresholdItem);
         }
-
-        db.close();
     }
 }
