@@ -35,4 +35,8 @@ public class StatSystem extends ProcList<StatSystem> {
     public StatSystem() {
         super();
     }
+
+    public StatSystem(int dataSize) {
+        super(dataSize);
+    }
 }

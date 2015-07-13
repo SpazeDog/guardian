@@ -34,8 +34,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.spazedog.guardian.AdapterAlertList.OnItemClickListener;
+import com.spazedog.guardian.backend.containers.ThresholdItem;
 import com.spazedog.guardian.db.AlertListDB;
-import com.spazedog.guardian.db.AlertListDB.ThresholdItemRow;
 import com.spazedog.guardian.utils.AbstractFragment;
 
 public class FragmentAlertList extends AbstractFragment implements OnItemClickListener {
@@ -83,7 +83,7 @@ public class FragmentAlertList extends AbstractFragment implements OnItemClickLi
                     AlertListDB db = getSettings().getAlertListDatabase();
 					db.clear();
 					
-					mRecyclerAdapter.updateDataSet( new ThresholdItemRow[0] );
+					mRecyclerAdapter.updateDataSet( new ThresholdItem[0] );
 				}
 				
 				return true;
@@ -96,25 +96,25 @@ public class FragmentAlertList extends AbstractFragment implements OnItemClickLi
 	public void onResume() {
 		super.onResume();
 		
-		List<ThresholdItemRow> list = new ArrayList<ThresholdItemRow>();
+		List<ThresholdItem> list = new ArrayList<ThresholdItem>();
         AlertListDB db = getSettings().getAlertListDatabase();
 		
-		for (ThresholdItemRow row : db) {
-			if (row.getThresholdItem() != null) {
-				list.add(row);
+		for (ThresholdItem item : db) {
+			if (item != null) {
+				list.add(item);
 			}
 		}
 		
-		mRecyclerAdapter.updateDataSet( list.toArray(new ThresholdItemRow[list.size()]) );
+		mRecyclerAdapter.updateDataSet( list.toArray(new ThresholdItem[list.size()]) );
 	}
 
     @Override
-    public void onItemClick(ThresholdItemRow row, int position) {
+    public void onItemClick(ThresholdItem item, int position) {
         ActivityLaunch activity = (ActivityLaunch) getActivity();
         AbstractFragment fragment = activity.getFragment(R.id.fragment_process_details);
         Bundle bundle = new Bundle();
 
-        bundle.putParcelable("entity", row.getThresholdItem().getEntity());
+        bundle.putParcelable("entity", item.getEntity());
         fragment.setArguments(bundle);
 
         ((ActivityLaunch) getActivity()).loadFragment("Details", fragment, true);

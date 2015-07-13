@@ -25,18 +25,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.spazedog.guardian.Common;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
-import com.spazedog.guardian.utils.JSONParcel;
-
-import org.json.JSONException;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
 
 import java.util.Iterator;
 
 
-public class AlertListDB extends SQLiteOpenHelper implements Iterable<AlertListDB.ThresholdItemRow> {
+public class AlertListDB extends SQLiteOpenHelper implements Iterable<ThresholdItem> {
 
-    private static final Integer DATABASE_VERSION = 2;
+    private static final Integer DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "alert_cache";
     private static final String TABLE_NAME = "alerts";
 
@@ -88,7 +88,7 @@ public class AlertListDB extends SQLiteOpenHelper implements Iterable<AlertListD
 
             values.put(COLUMN_PROCESS, entity.getProcessName());
             values.put(COLUMN_ENTITY, thresholdItem.getJSONParcel(mContext).toString());
-            values.put(COLUMN_DATE, System.currentTimeMillis());
+            values.put(COLUMN_DATE, thresholdItem.getTimestamp());
 
             database.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
             database.close();
@@ -96,12 +96,12 @@ public class AlertListDB extends SQLiteOpenHelper implements Iterable<AlertListD
     }
 
     @Override
-    public Iterator<ThresholdItemRow> iterator() {
+    public Iterator<ThresholdItem> iterator() {
         synchronized (mLock) {
             final SQLiteDatabase database = getReadableDatabase();
             final Cursor cursor = database.rawQuery(String.format("SELECT %s, %s FROM %s ORDER BY %s DESC", COLUMN_ENTITY, COLUMN_DATE, TABLE_NAME, COLUMN_DATE), null);
 
-            return new Iterator<ThresholdItemRow>() {
+            return new Iterator<ThresholdItem>() {
 
                 private Boolean mHasNext;
 
@@ -120,20 +120,20 @@ public class AlertListDB extends SQLiteOpenHelper implements Iterable<AlertListD
                 }
 
                 @Override
-                public ThresholdItemRow next() {
+                public ThresholdItem next() {
                     synchronized (mLock) {
-                        ThresholdItemRow row = new ThresholdItemRow();
+                        ThresholdItem item = null;
 
                         try {
                             if (database.isOpen()) {
-                                row.mThresholdItem = new JSONParcel(cursor.getString(0)).readJSONParcelable(ThresholdItem.class.getClassLoader());
-                                row.mTime = cursor.getLong(1);
+                                item = new JSONParcel(cursor.getString(0)).readJSONParcelable(ThresholdItem.class.getClassLoader());
                             }
 
                         } catch (JSONException e) {
+                            Common.LOG.Error(this, e.getMessage(), e);
                         }
 
-                        return row;
+                        return item;
                     }
                 }
 
@@ -142,22 +142,6 @@ public class AlertListDB extends SQLiteOpenHelper implements Iterable<AlertListD
                     throw new UnsupportedOperationException();
                 }
             };
-        }
-    }
-
-    public static class ThresholdItemRow {
-
-        protected ThresholdItem mThresholdItem;
-        protected long mTime = 0;
-
-        protected ThresholdItemRow() {}
-
-        public ThresholdItem getThresholdItem() {
-            return mThresholdItem;
-        }
-
-        public long getTime() {
-            return mTime;
         }
     }
 }

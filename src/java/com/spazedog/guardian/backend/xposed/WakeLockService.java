@@ -32,17 +32,14 @@ import android.util.Log;
 
 import com.spazedog.guardian.Common.LOG;
 import com.spazedog.guardian.Constants;
-import com.spazedog.guardian.utils.JSONParcel;
-import com.spazedog.guardian.utils.JSONParcelable;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
 import com.spazedog.lib.reflecttools.ReflectClass;
 import com.spazedog.lib.reflecttools.ReflectException;
 import com.spazedog.lib.reflecttools.ReflectMember.Match;
 import com.spazedog.lib.reflecttools.ReflectMethod;
 import com.spazedog.lib.reflecttools.bridge.MethodBridge;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.spazedog.lib.utilsLib.MultiParcelable;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -365,7 +362,7 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 	}
 	
-	public static class ProcessLockInfo implements Parcelable, JSONParcelable {
+	public static class ProcessLockInfo implements MultiParcelable {
 		private boolean mParcelMatches = true;
 		private String mProcessName;
 		private int mUid = 0;
@@ -495,16 +492,15 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			return mWakeLocks;
 		}
 		
-		public static final Creator CREATOR = new Creator();
+		public static final MultiCreator<ProcessLockInfo> CREATOR = new MultiCreator<ProcessLockInfo>() {
 
-        protected static class Creator implements Parcelable.Creator<ProcessLockInfo>, JSONParcelable.JSONCreator<ProcessLockInfo> {
             @Override
             public ProcessLockInfo createFromParcel(Parcel in) {
                 return new ProcessLockInfo(in);
             }
 
             @Override
-            public ProcessLockInfo createFromJSON(JSONParcel in) {
+            public ProcessLockInfo createFromJSON(JSONParcel in, ClassLoader loader) {
                 return new ProcessLockInfo(in);
             }
 
@@ -512,10 +508,10 @@ public class WakeLockService extends IRWakeLockService.Stub {
             public ProcessLockInfo[] newArray(int size) {
                 return new ProcessLockInfo[size];
             }
-        }
+        };
 	}
 	
-	public static class WakeLockInfo implements Parcelable, JSONParcelable {
+	public static class WakeLockInfo implements MultiParcelable {
 		private boolean mParcelMatches = true;
 		private String mTag;
 		private int mPid = 0;
@@ -529,12 +525,17 @@ public class WakeLockService extends IRWakeLockService.Stub {
 		}
 		
 		public void writeToJSON(JSONParcel out) {
-            out.writeInt( mParcelMatches ? 1 : 0 );
-            out.writeString(mTag);
-            out.writeInt(mPid);
-            out.writeInt(mFlags);
-            out.writeLong(mTimestamp);
-            out.writeLong(mTime);
+            try {
+                out.writeInt( mParcelMatches ? 1 : 0 );
+                out.writeString(mTag);
+                out.writeInt(mPid);
+                out.writeInt(mFlags);
+                out.writeLong(mTimestamp);
+                out.writeLong(mTime);
+
+            } catch (JSONException e) {
+                Log.e(getClass().getName(), e.getMessage(), e);
+            }
 		}
 
 		@Override
@@ -614,16 +615,15 @@ public class WakeLockService extends IRWakeLockService.Stub {
 			return mTimestamp;
 		}
 
-        public static final Creator CREATOR = new Creator();
+        public static final MultiCreator<WakeLockInfo> CREATOR = new MultiCreator<WakeLockInfo>() {
 
-        protected static class Creator implements Parcelable.Creator<WakeLockInfo>, JSONParcelable.JSONCreator<WakeLockInfo> {
             @Override
             public WakeLockInfo createFromParcel(Parcel in) {
                 return new WakeLockInfo(in);
             }
 
             @Override
-            public WakeLockInfo createFromJSON(JSONParcel in) {
+            public WakeLockInfo createFromJSON(JSONParcel in, ClassLoader loader) {
                 return new WakeLockInfo(in);
             }
 
@@ -631,6 +631,6 @@ public class WakeLockService extends IRWakeLockService.Stub {
             public WakeLockInfo[] newArray(int size) {
                 return new WakeLockInfo[size];
             }
-        }
+        };
 	}
 }

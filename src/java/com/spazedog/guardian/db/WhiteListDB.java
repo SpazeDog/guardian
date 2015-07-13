@@ -25,18 +25,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.spazedog.guardian.backend.containers.ThresholdItem;
+import com.spazedog.guardian.Common;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
-import com.spazedog.guardian.utils.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
 
-import org.json.JSONException;
-
-import java.lang.ref.WeakReference;
 import java.util.Iterator;
 
 public class WhiteListDB extends SQLiteOpenHelper implements Iterable<ProcEntity<?>> {
 
-    protected static final Integer DATABASE_VERSION = 1;
+    protected static final Integer DATABASE_VERSION = 2;
     protected static final String DATABASE_NAME = "white_list";
     protected static final String TABLE_NAME = "listing";
 
@@ -66,7 +64,7 @@ public class WhiteListDB extends SQLiteOpenHelper implements Iterable<ProcEntity
 	
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        db.delete(TABLE_NAME, null, null);
     }
 	
 	public void addEntity(ProcEntity<?> entity) {
@@ -137,6 +135,7 @@ public class WhiteListDB extends SQLiteOpenHelper implements Iterable<ProcEntity
                             }
 
                         } catch (JSONException e) {
+                            Common.LOG.Error(this, e.getMessage(), e);
                         }
 
                         return entity;

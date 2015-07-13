@@ -20,7 +20,6 @@ import com.spazedog.guardian.R;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.application.Settings;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
-import com.spazedog.guardian.backend.containers.ThresholdMap;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.backend.xposed.WakeLockService.WakeLockInfo;
@@ -32,6 +31,7 @@ import com.spazedog.guardian.scanner.ProcessScanner.ScanMode;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.lib.rootfw4.Shell;
+import com.spazedog.lib.utilsLib.SparseMap;
 
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +45,7 @@ public class MonitorWorker {
     protected boolean mIsInteractive;
     protected int mThresholdValue;
     protected Bundle mDataBundle;
-    protected ThresholdMap mThresholdData = new ThresholdMap();
+    protected SparseMap<ThresholdItem> mThresholdData = new SparseMap<ThresholdItem>();
     protected WhiteListDB mWhiteListDatabase;
 
     @SuppressWarnings("deprecation")
@@ -66,8 +66,8 @@ public class MonitorWorker {
     }
 
     public void start() {
-        ThresholdMap lastThresholdData = mDataBundle.getParcelable("evaluate");
-        ThresholdMap currentThresholdData = mThresholdData;
+        SparseMap<ThresholdItem> lastThresholdData = mDataBundle.getParcelable("evaluate");
+        SparseMap<ThresholdItem> currentThresholdData = mThresholdData;
         ScanMode scanMode = mSettings.monitorLinux() ? ScanMode.COLLECT_PROCESSES : ScanMode.COLLECT_APPLICATIONS;
         ProcList<?> processList = ProcessScanner.execute(mController, scanMode, (ProcList<?>) mDataBundle.getParcelable("processes"));
         boolean scanWakelocks = !mIsInteractive && mController.getWakeLockManager() != null;
@@ -185,6 +185,7 @@ public class MonitorWorker {
 
                         if (item == null) {
                             item = new ThresholdItem(entity, ThresholdItem.FLAG_CPU);
+                            item.setTimestamp(System.currentTimeMillis());
 
                         } else {
                             item.setEntity(entity, item.getFlags() | ThresholdItem.FLAG_CPU);
@@ -233,6 +234,7 @@ public class MonitorWorker {
 
                                 if (item == null) {
                                     item = new ThresholdItem(entity, ThresholdItem.FLAG_WAKELOCK);
+                                    item.setTimestamp(System.currentTimeMillis());
 
                                 } else {
                                     item.setEntity(entity, item.getFlags()|ThresholdItem.FLAG_WAKELOCK);

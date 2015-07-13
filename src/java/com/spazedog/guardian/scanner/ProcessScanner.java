@@ -30,6 +30,7 @@ import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcList;
+import com.spazedog.lib.utilsLib.SparseList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,10 +79,12 @@ public class ProcessScanner {
 		
 	public static ProcList<?> execute(Context context, ScanMode mode, ProcList<?> processList) {
 		if (hasLibrary()) {
-			List<Integer> tempList = new ArrayList<Integer>();
+			List<Integer> tempList = null;
 			int[] pidList = null;
 			
 			if (mode == ScanMode.EVALUATE_COLLECTION && processList != null) {
+                tempList = new SparseList<Integer>(processList.getEntitySize());
+
 				for (ProcEntity<?> entity : processList) {
 					tempList.add(entity.getProcessId());
 					tempList.add(entity.getProcessUid());
@@ -91,6 +94,7 @@ public class ProcessScanner {
 			} else if (mode != ScanMode.EVALUATE_COLLECTION && mode != ScanMode.COLLECT_CPU) {
 				ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 				List<RunningAppProcessInfo> runningProcesses = manager.getRunningAppProcesses();
+                tempList = new SparseList<Integer>(runningProcesses.size());
 				
 				if (runningProcesses != null) {
 					for (RunningAppProcessInfo androidProcess : runningProcesses) {
@@ -109,7 +113,7 @@ public class ProcessScanner {
 			String[][] statCollection = getProcessList(pidList, mode != ScanMode.COLLECT_PROCESSES);
 			
 			if (statCollection.length > 0) {
-                StatSystem systemProcess = new StatSystem();
+                StatSystem systemProcess = new StatSystem(statCollection.length);
 				systemProcess.updateStat(statCollection[0], StatSystem.cast(processList));
 				
 				List<ProcessLockInfo> processLockInfo = null;

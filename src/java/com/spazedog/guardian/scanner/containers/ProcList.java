@@ -23,11 +23,10 @@ package com.spazedog.guardian.scanner.containers;
 import android.os.Parcel;
 import android.util.Log;
 
-import com.spazedog.guardian.utils.JSONParcel;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
+import com.spazedog.lib.utilsLib.SparseList;
+import com.spazedog.lib.utilsLib.SparseMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,10 +37,17 @@ import java.util.Map;
 
 public abstract class ProcList<T extends ProcList> extends ProcStat<T> implements Iterable<ProcEntity<?>> {
 
-    private final List<ProcEntity<?>> mOrderedEntities = new ArrayList<ProcEntity<?>>();
-    private final Map<Integer, ProcEntity<?>> mMappedEntities = new HashMap<Integer, ProcEntity<?>>();
+    private List<ProcEntity<?>> mOrderedEntities;
+    private Map<Integer, ProcEntity<?>> mMappedEntities;
 
-    public ProcList() {}
+    public ProcList() {
+        this(0);
+    }
+
+    public ProcList(int dataSize) {
+        mOrderedEntities = new SparseList<ProcEntity<?>>(dataSize);
+        mMappedEntities = new SparseMap<ProcEntity<?>>(dataSize);
+    }
 
     @Override
     public Iterator<ProcEntity<?>> iterator() {
@@ -149,10 +155,15 @@ public abstract class ProcList<T extends ProcList> extends ProcStat<T> implement
     public void writeToJSON(JSONParcel out) {
         super.writeToJSON(out);
 
-        out.writeInt(mOrderedEntities.size());
+        try {
+            out.writeInt(mOrderedEntities.size());
 
-        for (ProcEntity<?> entity: mOrderedEntities) {
-            out.writeJSONParcelable(entity);
+            for (ProcEntity<?> entity : mOrderedEntities) {
+                out.writeJSONParcelable(entity);
+            }
+
+        } catch (JSONException e) {
+            Log.e(getClass().getName(), e.getMessage(), e);
         }
     }
 
