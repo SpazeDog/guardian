@@ -22,10 +22,12 @@ package com.spazedog.guardian.scanner;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import com.spazedog.guardian.R;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
-import com.spazedog.guardian.utils.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
 
 public class EntityLinux extends ProcEntity<EntityLinux> {
 
@@ -78,10 +80,17 @@ public class EntityLinux extends ProcEntity<EntityLinux> {
 
         @Override
         public JSONParcel getJSONParcel() {
-            JSONParcel parcel = new JSONParcel(mContext);
-            parcel.writeJSONParcelable(EntityLinux.this);
+            try {
+                JSONParcel parcel = new JSONParcel(mContext);
+                parcel.writeJSONParcelable(EntityLinux.this);
 
-            return parcel;
+                return parcel;
+
+            } catch (JSONException e) {
+                Log.e(getClass().getName(), e.getMessage(), e);
+            }
+
+            return null;
         }
 
         @Override

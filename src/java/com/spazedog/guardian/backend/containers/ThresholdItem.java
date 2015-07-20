@@ -21,17 +21,15 @@ package com.spazedog.guardian.backend.containers;
 
 import android.content.Context;
 import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 import com.spazedog.guardian.scanner.containers.ProcEntity;
-import com.spazedog.guardian.utils.JSONParcel;
-import com.spazedog.guardian.utils.JSONParcelable;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
+import com.spazedog.lib.utilsLib.MultiParcelable;
 
-import org.json.JSONException;
 
-
-public class ThresholdItem implements Parcelable, JSONParcelable {
+public class ThresholdItem implements MultiParcelable {
 
     public static final int FLAG_CPU = 0x00000001;
     public static final int FLAG_WAKELOCK = 0x00000002;
@@ -40,6 +38,7 @@ public class ThresholdItem implements Parcelable, JSONParcelable {
     public static final int FLAG_ACTION_REBOOTED = 0x00001000;
     public static final int FLAG_ACTION_NOTIFIED = 0x00002000;
 
+    protected long mTimestamp = 0l;
     protected int mCount = 0;
     protected int mFlagThreshold = 0;
     protected ProcEntity<?> mEntity;
@@ -49,6 +48,7 @@ public class ThresholdItem implements Parcelable, JSONParcelable {
     }
 
     public ThresholdItem(Parcel in) {
+        mTimestamp = in.readLong();
         mCount = in.readInt();
         mFlagThreshold = in.readInt();
         mEntity = in.readParcelable(ProcEntity.class.getClassLoader());
@@ -56,6 +56,7 @@ public class ThresholdItem implements Parcelable, JSONParcelable {
 
     public ThresholdItem(JSONParcel in) {
         try {
+            mTimestamp = in.readLong();
             mCount = in.readInt();
             mFlagThreshold = in.readInt();
             mEntity = in.readJSONParcelable(ProcEntity.class.getClassLoader());
@@ -66,21 +67,35 @@ public class ThresholdItem implements Parcelable, JSONParcelable {
     }
 
     public JSONParcel getJSONParcel(Context context) {
-        JSONParcel parcel = new JSONParcel(context);
-        parcel.writeJSONParcelable(this);
+        try {
+            JSONParcel parcel = new JSONParcel(context);
+            parcel.writeJSONParcelable(this);
 
-        return parcel;
+            return parcel;
+
+        } catch (JSONException e) {
+            Log.e(getClass().getName(), e.getMessage(), e);
+        }
+
+        return null;
     }
 
     @Override
     public void writeToJSON(JSONParcel out) {
-        out.writeInt(mCount);
-        out.writeInt(mFlagThreshold);
-        out.writeJSONParcelable(mEntity);
+        try {
+            out.writeLong(mTimestamp);
+            out.writeInt(mCount);
+            out.writeInt(mFlagThreshold);
+            out.writeJSONParcelable(mEntity);
+
+        } catch (JSONException e) {
+            Log.e(getClass().getName(), e.getMessage(), e);
+        }
     }
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
+        out.writeLong(mTimestamp);
         out.writeInt(mCount);
         out.writeInt(mFlagThreshold);
         out.writeParcelable(mEntity, flags);
@@ -116,16 +131,23 @@ public class ThresholdItem implements Parcelable, JSONParcelable {
         mCount = count;
     }
 
-    public static final Creator CREATOR = new Creator();
+    public long getTimestamp() {
+        return mTimestamp;
+    }
 
-    protected static class Creator implements Parcelable.Creator<ThresholdItem>, JSONParcelable.JSONCreator<ThresholdItem> {
+    public void setTimestamp(long time) {
+        mTimestamp = time;
+    }
+
+    public static final MultiCreator<ThresholdItem> CREATOR = new MultiCreator<ThresholdItem>() {
+
         @Override
         public ThresholdItem createFromParcel(Parcel in) {
             return new ThresholdItem(in);
         }
 
         @Override
-        public ThresholdItem createFromJSON(JSONParcel in) {
+        public ThresholdItem createFromJSON(JSONParcel in, ClassLoader loader) {
             return new ThresholdItem(in);
         }
 
@@ -133,5 +155,5 @@ public class ThresholdItem implements Parcelable, JSONParcelable {
         public ThresholdItem[] newArray(int size) {
             return new ThresholdItem[size];
         }
-    }
+    };
 }

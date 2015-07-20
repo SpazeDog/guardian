@@ -31,11 +31,8 @@ import android.util.Log;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
-import com.spazedog.guardian.utils.JSONParcel;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
 
 public abstract class ProcEntity<T extends ProcEntity> extends ProcStat<T> implements Comparable<ProcEntity<?>> {
 

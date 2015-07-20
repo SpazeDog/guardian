@@ -45,9 +45,8 @@ public final class PersistentService extends MonitorService {
 	
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		if (intent.getExtras() == null) {
-			intent.putExtras(new Bundle());
-		}
+        final Intent perstIntent = new Intent(intent);
+        perstIntent.putExtras(new Bundle());
 		
 		Controller controller = getController();
 		PersistentServiceControl serviceControl = (PersistentServiceControl) controller.getServiceControl();
@@ -66,10 +65,10 @@ public final class PersistentService extends MonitorService {
 		serviceControl.alertStateChanged((oStatus = Status.STARTED));
 		
 		do {
-			super.onHandleIntent(intent);
+			super.onHandleIntent(perstIntent);
 			
 			if (oStatus == Status.STARTED) {
-				Bundle bundle = intent.getExtras();
+				Bundle bundle = perstIntent.getExtras();
 				int timeout = bundle.getInt("timeout", getSettings().getServiceInterval());
 				long time = SystemClock.elapsedRealtime() + timeout;
 				DateFormat dateFormat = android.text.format.DateFormat.getTimeFormat(controller);

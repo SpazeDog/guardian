@@ -20,7 +20,6 @@ import com.spazedog.guardian.R;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.application.Settings;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
-import com.spazedog.guardian.backend.containers.ThresholdMap;
 import com.spazedog.guardian.backend.xposed.WakeLockManager;
 import com.spazedog.guardian.backend.xposed.WakeLockService.ProcessLockInfo;
 import com.spazedog.guardian.backend.xposed.WakeLockService.WakeLockInfo;
@@ -32,6 +31,7 @@ import com.spazedog.guardian.scanner.ProcessScanner.ScanMode;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.lib.rootfw4.Shell;
+import com.spazedog.lib.utilsLib.SparseMap;
 
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +45,7 @@ public class MonitorWorker {
     protected boolean mIsInteractive;
     protected int mThresholdValue;
     protected Bundle mDataBundle;
-    protected ThresholdMap mThresholdData = new ThresholdMap();
+    protected SparseMap<ThresholdItem> mThresholdData = new SparseMap<ThresholdItem>();
     protected WhiteListDB mWhiteListDatabase;
 
     @SuppressWarnings("deprecation")
@@ -65,9 +65,9 @@ public class MonitorWorker {
         mWhiteListDatabase = mSettings.getWhiteListDatabase();
     }
 
-    public void start() {
-        ThresholdMap lastThresholdData = mDataBundle.getParcelable("evaluate");
-        ThresholdMap currentThresholdData = mThresholdData;
+    public Bundle start() {
+        SparseMap<ThresholdItem> lastThresholdData = mDataBundle.getParcelable("evaluate");
+        SparseMap<ThresholdItem> currentThresholdData = mThresholdData;
         ScanMode scanMode = mSettings.monitorLinux() ? ScanMode.COLLECT_PROCESSES : ScanMode.COLLECT_APPLICATIONS;
         ProcList<?> processList = ProcessScanner.execute(mController, scanMode, (ProcList<?>) mDataBundle.getParcelable("processes"));
         boolean scanWakelocks = !mIsInteractive && mController.getWakeLockManager() != null;
@@ -144,22 +144,29 @@ public class MonitorWorker {
 			 * Parse everything to the next scan cycle
 			 */
             if (mThresholdData.size() > 0) {
+                Common.LOG.Debug(this, "Configuring Re-check data");
+
                 mDataBundle.putParcelable("evaluate", mThresholdData);
                 mDataBundle.putInt("timeout", getRecheckTimeout());
 
             } else {
+                Common.LOG.Debug(this, "Cleaning up Re-check data");
+
                 mDataBundle.remove("evaluate");
                 mDataBundle.remove("timeout");
             }
 
             mDataBundle.putParcelable("processes", processList);
         }
+
+        return mDataBundle;
     }
 
     protected int getRecheckTimeout() {
+        int minute = (60 * 1000);
         int interval = mSettings.getServiceInterval();
-        int timeout = (int) interval >= (5*6000) ? (5*6000) :
-                interval > 6000 ? interval/2 : 6000;
+        int timeout = (int) interval >= (5 * minute) ? (5 * minute) :
+                interval > minute ? interval/2 : minute;
 
         return timeout;
     }
@@ -185,6 +192,7 @@ public class MonitorWorker {
 
                         if (item == null) {
                             item = new ThresholdItem(entity, ThresholdItem.FLAG_CPU);
+                            item.setTimestamp(System.currentTimeMillis());
 
                         } else {
                             item.setEntity(entity, item.getFlags() | ThresholdItem.FLAG_CPU);
@@ -233,6 +241,7 @@ public class MonitorWorker {
 
                                 if (item == null) {
                                     item = new ThresholdItem(entity, ThresholdItem.FLAG_WAKELOCK);
+                                    item.setTimestamp(System.currentTimeMillis());
 
                                 } else {
                                     item.setEntity(entity, item.getFlags()|ThresholdItem.FLAG_WAKELOCK);
@@ -240,14 +249,14 @@ public class MonitorWorker {
 
                                 mThresholdData.put(pid, item);
 
-                                /*
-                                 * We only need to know if one of it's locks has been required to long
-                                 */
-                                break;
-
                             } else {
                                 Common.LOG.Debug(this, "Process has been white listed, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", Wakelock Time = " + wakeLock.getTime());
                             }
+
+                            /*
+                             * We only need to know if one of it's locks has been required to long
+                             */
+                            break;
                         }
                     }
                 }

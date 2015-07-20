@@ -20,22 +20,18 @@
 package com.spazedog.guardian.scanner.containers;
 
 
-import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-import com.spazedog.guardian.utils.JSONParcel;
-import com.spazedog.guardian.utils.JSONParcelable;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.spazedog.lib.utilsLib.JSONParcel;
+import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
+import com.spazedog.lib.utilsLib.MultiParcelable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public abstract class ProcStat<T extends ProcStat> implements Parcelable, JSONParcelable {
+public abstract class ProcStat<T extends ProcStat> implements MultiParcelable {
 
     protected long[] mStatUptime = new long[] {0l, 0l};
     protected long[] mStatIdle = new long[] {0l, 0l};
@@ -126,9 +122,14 @@ public abstract class ProcStat<T extends ProcStat> implements Parcelable, JSONPa
      */
 
     public void writeToJSON(JSONParcel out) {
-        out.writeString(getClass().getName());
-        out.writeLongArray(mStatUptime);
-        out.writeLongArray(mStatIdle);
+        try {
+            out.writeString(getClass().getName());
+            out.writeLongArray(mStatUptime);
+            out.writeLongArray(mStatIdle);
+
+        } catch (JSONException e) {
+            Log.e(getClass().getName(), e.getMessage(), e);
+        }
     }
 
     public void readFromJSON(JSONParcel in) {
@@ -151,7 +152,7 @@ public abstract class ProcStat<T extends ProcStat> implements Parcelable, JSONPa
      * ------------------------------------------------------------------------------------------------------------
      */
 
-    protected static class Creator implements Parcelable.Creator<ProcStat<?>>, JSONParcelable.JSONCreator<ProcStat<?>> {
+    public static final MultiCreator<ProcStat<?>> CREATOR = new MultiCreator<ProcStat<?>>() {
 
         @Override
         public ProcStat<?> createFromParcel(Parcel in) {
@@ -164,7 +165,7 @@ public abstract class ProcStat<T extends ProcStat> implements Parcelable, JSONPa
         }
 
         @Override
-        public ProcStat<?> createFromJSON(JSONParcel in) {
+        public ProcStat<?> createFromJSON(JSONParcel in, ClassLoader loader) {
             try {
                 String className = in.readString();
                 ProcStat<?> instance = getInstance(className);
@@ -182,9 +183,7 @@ public abstract class ProcStat<T extends ProcStat> implements Parcelable, JSONPa
         public ProcStat<?>[] newArray(int size) {
             return new ProcStat<?>[size];
         }
-    }
-
-    public static final Creator CREATOR = new Creator();
+    };
 
     protected static ProcStat<?> getInstance(String className) {
         try {

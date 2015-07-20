@@ -32,7 +32,6 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
-import com.spazedog.guardian.db.AlertListDB.ThresholdItemRow;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 
@@ -65,13 +64,13 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 	}
 
 	public static interface OnItemClickListener {
-		void onItemClick(ThresholdItemRow row, int position);
+		void onItemClick(ThresholdItem item, int position);
 	}
 	
 	protected WeakReference<Controller> mController;
     protected OnItemClickListener mListener;
 	protected LruCache<String, Bitmap> mImageCache;
-	protected ThresholdItemRow[] mRows;
+	protected ThresholdItem[] mItems;
 	
 	public AdapterAlertList(Controller controller) {
 		mController = new WeakReference<Controller>(controller);
@@ -85,27 +84,26 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 
 	@Override
 	public int getItemCount() {
-		return mRows != null ? mRows.length : 0;
+		return mItems != null ? mItems.length : 0;
 	}
 
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
 		Controller controller = mController.get();
-		ThresholdItemRow row = mRows[position];
-		ThresholdItem thresholdItem = row.getThresholdItem();
-		ProcEntity<?> entity = thresholdItem.getEntity();
+		ThresholdItem item = mItems[position];
+		ProcEntity<?> entity = item.getEntity();
         DataLoader entityData = entity.getDataLoader(controller);
 
 		holder.textLabel.setText(entityData.getPackageLabel());
 		holder.textName.setText(entity.getProcessName());
 		holder.textUsage.setText( (entity.getCpuUsage() + "%") );
-		holder.textDate.setText(DateUtils.formatDateTime(controller, row.getTime(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
+		holder.textDate.setText(DateUtils.formatDateTime(controller, item.getTimestamp(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
 		holder.image.setImageBitmap(loadIcon(entityData));
 
         holder.rootView.setOnClickListener(this);
         holder.rootView.setTag(position);
 
-        int flags = thresholdItem.getFlags();
+        int flags = item.getFlags();
         String explain = null;
 
         if ((flags & ThresholdItem.FLAG_WAKELOCK) == ThresholdItem.FLAG_WAKELOCK) {
@@ -151,15 +149,15 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
     public void onClick(View view) {
         int pos = (Integer) view.getTag();
 
-        mListener.onItemClick(mRows[pos], pos);
+        mListener.onItemClick(mItems[pos], pos);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }
 	
-	public void updateDataSet(ThresholdItemRow[] rows) {
-		mRows = rows;
+	public void updateDataSet(ThresholdItem[] item) {
+		mItems = item;
 		
 		notifyDataSetChanged();
 	}
