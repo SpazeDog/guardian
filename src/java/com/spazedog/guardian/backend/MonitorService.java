@@ -83,7 +83,7 @@ public abstract class MonitorService extends IntentService {
 		}
 
 		MonitorWorker worker = new MonitorWorker(getController(), extras);
-		worker.start();
+        intent.putExtras(worker.start());
 		
 		intent.putExtras(extras);
 		

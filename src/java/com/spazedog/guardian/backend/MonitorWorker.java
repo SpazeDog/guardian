@@ -65,7 +65,7 @@ public class MonitorWorker {
         mWhiteListDatabase = mSettings.getWhiteListDatabase();
     }
 
-    public void start() {
+    public Bundle start() {
         SparseMap<ThresholdItem> lastThresholdData = mDataBundle.getParcelable("evaluate");
         SparseMap<ThresholdItem> currentThresholdData = mThresholdData;
         ScanMode scanMode = mSettings.monitorLinux() ? ScanMode.COLLECT_PROCESSES : ScanMode.COLLECT_APPLICATIONS;
@@ -158,6 +158,8 @@ public class MonitorWorker {
 
             mDataBundle.putParcelable("processes", processList);
         }
+
+        return mDataBundle;
     }
 
     protected int getRecheckTimeout() {
