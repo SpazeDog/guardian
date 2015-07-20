@@ -144,10 +144,14 @@ public class MonitorWorker {
 			 * Parse everything to the next scan cycle
 			 */
             if (mThresholdData.size() > 0) {
+                Common.LOG.Debug(this, "Configuring Re-check data");
+
                 mDataBundle.putParcelable("evaluate", mThresholdData);
                 mDataBundle.putInt("timeout", getRecheckTimeout());
 
             } else {
+                Common.LOG.Debug(this, "Cleaning up Re-check data");
+
                 mDataBundle.remove("evaluate");
                 mDataBundle.remove("timeout");
             }
@@ -157,9 +161,10 @@ public class MonitorWorker {
     }
 
     protected int getRecheckTimeout() {
+        int minute = (60 * 1000);
         int interval = mSettings.getServiceInterval();
-        int timeout = (int) interval >= (5*6000) ? (5*6000) :
-                interval > 6000 ? interval/2 : 6000;
+        int timeout = (int) interval >= (5 * minute) ? (5 * minute) :
+                interval > minute ? interval/2 : minute;
 
         return timeout;
     }
