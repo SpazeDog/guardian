@@ -73,16 +73,22 @@ public class Controller extends Application implements ApplicationImpl, ISetting
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
-		mServiceHandler = new ServiceHandler(this);
 
+        instantiateHandler();
         instantiateSettings();
+        instantiateServiceControl();
 	}
+
+    protected void instantiateHandler() {
+        mServiceHandler = new ServiceHandler(this);
+    }
 
     protected void instantiateSettings() {
         mSettings = new Settings(this);
+    }
 
-        instantiateServiceControl();
+    protected void instantiateServiceControl() {
+        mServiceControl = MonitorServiceControl.getInstance(this, mSettings.getServiceEngine());
 
         /*
 		 * mServiceControl needs to be configured before adding settings listener.
@@ -91,10 +97,6 @@ public class Controller extends Application implements ApplicationImpl, ISetting
 		 */
         mServiceControl.setMonitorServiceListener(this);
         mSettings.addListener(this);
-    }
-
-    protected void instantiateServiceControl() {
-        mServiceControl = MonitorServiceControl.getInstance(this, mSettings.getServiceEngine());
     }
 
 	@SuppressWarnings("incomplete-switch")

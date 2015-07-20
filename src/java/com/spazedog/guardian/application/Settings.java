@@ -73,7 +73,7 @@ public class Settings implements ApplicationImpl {
 	
 	protected SettingsHandler mSettingsHandler;
 
-	protected WeakReference<Controller> mController;
+	protected Controller mController;
 	protected SharedPreferences mPreferences;
 	
 	protected volatile Boolean mSettingsServiceEnabled;
@@ -93,11 +93,20 @@ public class Settings implements ApplicationImpl {
     protected WhiteListDB mWhiteListDB;
     protected AlertListDB mAlertListDB;
 	
-	public Settings(Controller controller) {
-		mSettingsHandler = new SettingsHandler(this);
-		mController = new WeakReference<Controller>(controller);
-		mPreferences = controller.getSharedPreferences("settings", Context.MODE_PRIVATE);
+	protected Settings(Controller controller) {
+		mController = controller;
+
+        instantiateHandler();
+        instantiatePreferences();
 	}
+
+    protected void instantiateHandler() {
+        mSettingsHandler = new SettingsHandler(this);
+    }
+
+    protected void instantiatePreferences() {
+        mPreferences = mController.getSharedPreferences("settings", Context.MODE_PRIVATE);
+    }
 
     public WhiteListDB getWhiteListDatabase() {
         if (mWhiteListDB == null) {
@@ -117,7 +126,7 @@ public class Settings implements ApplicationImpl {
 
 	@Override
 	public Controller getController() {
-		return mController.get();
+		return mController;
 	}
 
     @Override
