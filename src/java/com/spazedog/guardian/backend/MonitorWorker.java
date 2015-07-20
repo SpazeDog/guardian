@@ -242,14 +242,14 @@ public class MonitorWorker {
 
                                 mThresholdData.put(pid, item);
 
-                                /*
-                                 * We only need to know if one of it's locks has been required to long
-                                 */
-                                break;
-
                             } else {
                                 Common.LOG.Debug(this, "Process has been white listed, PID = " + entity.getProcessId() + ", Process Name = " + entity.getProcessName() + ", Wakelock Time = " + wakeLock.getTime());
                             }
+
+                            /*
+                             * We only need to know if one of it's locks has been required to long
+                             */
+                            break;
                         }
                     }
                 }
