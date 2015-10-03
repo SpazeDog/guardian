@@ -291,6 +291,11 @@ public abstract class ProcEntity<T extends ProcEntity> extends ProcStat<T> imple
                 case ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE: importanceRes = R.string.process_importance_visible; break;
                 case ActivityManager.RunningAppProcessInfo.IMPORTANCE_EMPTY: importanceRes = R.string.process_importance_idle; break;
 
+                /*
+                 * Used by Android 5.1.1+
+                 */
+                case 1: importanceRes = R.string.process_importance_android; break;
+
                 default:
                     importanceRes = importance > 0 ? R.string.process_importance_dead : R.string.process_importance_linux;
             }

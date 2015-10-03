@@ -9,5 +9,6 @@
     <string name="process_importance_idle">Idle</string>
     <string name="process_importance_dead">Dead</string>
     <string name="process_importance_linux">Linux</string>
+    <string name="process_importance_android">Android</string>
     
 </resources>
