@@ -43,6 +43,7 @@
 extern "C" {
 
 	static int mCustomValues = 2;
+    static bool mCollectValues = false;
 
 	/**
 	 * =====================================================================
@@ -256,7 +257,14 @@ extern "C" {
 
 				typeList.push_back( std::pair<std::string, TypeDefPair>(pidStream.str(), TypeDefPair(uidStream.str(), typeStream.str())) );
 			}
-		}
+
+		} else {
+            /*
+             * Android 5.1.1 and onwards will not parse any Android Process Info.
+             * We will need to collect this from here instead.
+             */
+            mCollectValues = true;
+        }
 
 		/*
 		 * Start collecting data from /proc
@@ -276,7 +284,7 @@ extern "C" {
 			in.close();
 		}
 
-		if (!listCollection || typeList.size() > 0) {
+		if (!listCollection || (mCollectValues || typeList.size() > 0)) {
 			DIR* procDirectory = opendir("/proc");
 
 			if (procDirectory != NULL) {
@@ -291,17 +299,56 @@ extern "C" {
 					 * If isProcess is false, there is no need to search the 'Type List'
 					 */
 					if (isProcess) {
-						for (TypeDefVector::iterator it = typeList.begin() ; it != typeList.end(); ++it) {
-							if (it->first == entityName) {
-								TypeDefPair typePair = it->second;
+                        if (!mCollectValues) {
+                            for (TypeDefVector::iterator it = typeList.begin(); it != typeList.end(); ++it) {
+                                if (it->first == entityName) {
+                                    TypeDefPair typePair = it->second;
 
-								uid = std::string( typePair.first );
-								type = std::string( typePair.second );
-								isListedProcess = true;
+                                    uid = std::string(typePair.first);
+                                    type = std::string(typePair.second);
+                                    isListedProcess = true;
 
-								break;
-							}
-						}
+                                    break;
+                                }
+                            }
+
+                        } else {
+                            in.open( (std::string("/proc/") + procEntity->d_name + "/cgroup").c_str() );
+
+                            if (in && in.good()) {
+                                /*
+                                 * We do not want the first line
+                                 */
+                                in.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+
+                                std::string line;
+                                std::getline(in, line);
+
+                                size_t pos = line.find("uid_");
+
+                                /*
+                                 * In Android 5.1.1 we cannot get Android processes using the framework tools.
+                                 * Instead we check the cgroup file which will contain the uid if the process is not
+                                 * a Linux process.
+                                 */
+                                if (pos != std::string::npos) {
+                                    pos += 4; // GoTo the end of 'uid_'
+                                    uid = line.substr(pos, (line.find_first_of("/", pos)-pos));
+                                    type = "1";
+
+                                    /*
+                                     * If the Java ProcessScanner class parsed a NULL list, it means that it
+                                     * wanted to only list Android processes. So we set this to true on all Android processes
+                                     * to account for this scenario.
+                                     */
+                                    isListedProcess = true;
+                                }
+                            }
+
+                            if (in) {
+                                in.close();
+                            }
+                        }
 					}
 
 					if (isProcess && (!collectFromList || isListedProcess)) {

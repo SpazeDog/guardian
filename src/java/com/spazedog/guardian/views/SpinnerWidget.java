@@ -34,6 +34,7 @@ import android.widget.Spinner;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class SpinnerWidget extends WidgetView<Spinner> implements OnItemSelectedListener {
 	
@@ -53,7 +54,7 @@ public class SpinnerWidget extends WidgetView<Spinner> implements OnItemSelected
 	}
 	
 	public SpinnerWidget(Context context, AttributeSet attrs) {
-		this(context, attrs, Common.resolveAttr(context, R.attr.layout_viewSpinnerWidget));
+		this(context, attrs, Conversion.attrToRes(context, R.attr.layout_viewSpinnerWidget));
 	}
 	
 	public SpinnerWidget(Context context, AttributeSet attrs, int layoutRes) {

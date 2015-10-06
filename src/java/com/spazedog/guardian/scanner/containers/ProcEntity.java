@@ -33,6 +33,7 @@ import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
 import com.spazedog.lib.utilsLib.JSONParcel;
 import com.spazedog.lib.utilsLib.JSONParcel.JSONException;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public abstract class ProcEntity<T extends ProcEntity> extends ProcStat<T> implements Comparable<ProcEntity<?>> {
 
@@ -291,6 +292,11 @@ public abstract class ProcEntity<T extends ProcEntity> extends ProcStat<T> imple
                 case ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE: importanceRes = R.string.process_importance_visible; break;
                 case ActivityManager.RunningAppProcessInfo.IMPORTANCE_EMPTY: importanceRes = R.string.process_importance_idle; break;
 
+                /*
+                 * Used by Android 5.1.1+
+                 */
+                case 1: importanceRes = R.string.process_importance_android; break;
+
                 default:
                     importanceRes = importance > 0 ? R.string.process_importance_dead : R.string.process_importance_linux;
             }
@@ -311,14 +317,14 @@ public abstract class ProcEntity<T extends ProcEntity> extends ProcStat<T> imple
                 canvasWidth = drawable.getIntrinsicWidth();
 
             } else {
-                canvasWidth = Common.dipToPixels(mContext.getResources(), width);
+                canvasWidth = Conversion.dipToPixels(width);
             }
 
             if (height <= 0) {
                 canvasHeight = drawable.getIntrinsicHeight();
 
             } else if (width != height) {
-                canvasHeight = Common.dipToPixels(mContext.getResources(), height);
+                canvasHeight = Conversion.dipToPixels(height);
 
             } else {
                 canvasHeight = canvasWidth;

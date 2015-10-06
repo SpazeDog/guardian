@@ -31,6 +31,7 @@ import android.widget.FrameLayout;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class ExtendedFrameLayout extends FrameLayout implements IExtendedLayout {
 	
@@ -178,7 +179,7 @@ public class ExtendedFrameLayout extends FrameLayout implements IExtendedLayout 
 	    	setWillNotDraw(!mShadowVisible || mShadowDrawable == null);
 	    	
     	} else {
-    		setElevation(Common.dipToPixels(mShadowVisible ? mShadowOffset : 0));
+    		setElevation(Conversion.dipToPixels(mShadowVisible ? mShadowOffset : 0));
     	}
     }
 	
@@ -192,7 +193,7 @@ public class ExtendedFrameLayout extends FrameLayout implements IExtendedLayout 
 
     private void updateShadowBounds() {
         if (mShadowDrawable != null) {
-            mShadowDrawable.setBounds(0, mHeight-Common.dipToPixels(1), mWidth, mHeight);
+            mShadowDrawable.setBounds(0, mHeight-Conversion.dipToPixels(1), mWidth, mHeight);
         }
     }
 
@@ -216,7 +217,7 @@ public class ExtendedFrameLayout extends FrameLayout implements IExtendedLayout 
     		triggerRequestLayout();
     		
     	} else {
-    		setElevation(Common.dipToPixels(mShadowVisible ? mShadowOffset : 0));
+    		setElevation(Conversion.dipToPixels(mShadowVisible ? mShadowOffset : 0));
     	}
     }
 
@@ -229,7 +230,7 @@ public class ExtendedFrameLayout extends FrameLayout implements IExtendedLayout 
 	        triggerRequestLayout();
 	        
         } else {
-        	setElevation(Common.dipToPixels(mShadowVisible ? mShadowOffset : 0));
+        	setElevation(Conversion.dipToPixels(mShadowVisible ? mShadowOffset : 0));
         }
     }
 }

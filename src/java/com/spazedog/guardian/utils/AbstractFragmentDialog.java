@@ -36,6 +36,8 @@ import com.spazedog.guardian.application.Settings;
 import com.spazedog.guardian.utils.ActivityLogic.IActivityLogic;
 import com.spazedog.guardian.utils.FragmentLogic.IFragmentLogic;
 import com.spazedog.guardian.views.IExtendedLayout;
+import com.spazedog.lib.utilsLib.utils.Configuration;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public abstract class AbstractFragmentDialog extends DialogFragment implements IFragmentLogic, IDialog, ApplicationImpl {
 	
@@ -75,44 +77,44 @@ public abstract class AbstractFragmentDialog extends DialogFragment implements I
 		if (layout != null && layout instanceof IExtendedLayout) {
 			IExtendedLayout exLayout = (IExtendedLayout) layout;
 			
-			if (Common.getDisplaySW() < 600) {
-				if (Common.isDisplayLandscape() && Common.getDisplayLW() >= 600) {
-					exLayout.setMaxHeight( (int) (Common.getDisplayHeight() * 0.95) );
-					exLayout.setTotalWidth( (int) (Common.getDisplayWidth() * 0.75) );
+			if (Configuration.getDisplaySW() < 600) {
+				if (Configuration.inLandscape() && Configuration.getDisplayLW() >= 600) {
+					exLayout.setMaxHeight( (int) (Conversion.dipToPixels(Configuration.getDisplayHeight()) * 0.95) );
+					exLayout.setTotalWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.75) );
 					
-				} else if (Common.getDisplayLW() >= 600) {
-					exLayout.setMaxHeight( (int) (Common.getDisplayHeight() * 0.90) );
-					exLayout.setTotalWidth( (int) (Common.getDisplayWidth() * 0.90) );
+				} else if (Configuration.getDisplayLW() >= 600) {
+					exLayout.setMaxHeight( (int) (Conversion.dipToPixels(Configuration.getDisplayHeight()) * 0.90) );
+					exLayout.setTotalWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.90) );
 				
 				} else {
-					exLayout.setMaxHeight( (int) (Common.getDisplayHeight() * 0.95) );
-					exLayout.setTotalWidth( (int) (Common.getDisplayWidth() * 0.95) );
+					exLayout.setMaxHeight( (int) (Conversion.dipToPixels(Configuration.getDisplayHeight()) * 0.95) );
+					exLayout.setTotalWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.95) );
 				}
 				
-			} else if (Common.isDisplayLandscape()) {
-				exLayout.setMaxHeight( (int) (Common.getDisplayHeight() * 0.85) );
-				exLayout.setTotalWidth( (int) (Common.getDisplayWidth() * 0.45) );
+			} else if (Configuration.inLandscape()) {
+				exLayout.setMaxHeight( (int) (Conversion.dipToPixels(Configuration.getDisplayHeight()) * 0.85) );
+				exLayout.setTotalWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.45) );
 				
 			} else {
-				exLayout.setMaxHeight( (int) (Common.getDisplayHeight() * 0.75) );
-				exLayout.setTotalWidth( (int) (Common.getDisplayWidth() * 0.65) );
+				exLayout.setMaxHeight( (int) (Conversion.dipToPixels(Configuration.getDisplayHeight()) * 0.75) );
+				exLayout.setTotalWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.65) );
 			}
 			
 		} else if (layout != null) {
-			if (Common.getDisplaySW() < 600) {
-				if (Common.isDisplayLandscape() && Common.getDisplayLW() >= 600) {
-					layout.setMinimumWidth( (int) (Common.getDisplayWidth() * 0.65) );
+			if (Configuration.getDisplaySW() < 600) {
+				if (Configuration.inLandscape() && Configuration.getDisplayLW() >= 600) {
+					layout.setMinimumWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.65) );
 					
 				} else {
-					layout.setMinimumWidth( (int) (Common.getDisplayWidth() * 0.75) );
+					layout.setMinimumWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.75) );
 				}
 				
 			} else {
-				if (Common.isDisplayLandscape()) {
-					layout.setMinimumWidth( (int) (Common.getDisplayWidth() * 0.45) );
+				if (Configuration.inLandscape()) {
+					layout.setMinimumWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.45) );
 					
 				} else {
-					layout.setMinimumWidth( (int) (Common.getDisplayWidth() * 0.65) );
+					layout.setMinimumWidth( (int) (Conversion.dipToPixels(Configuration.getDisplayWidth()) * 0.65) );
 				}
 			}
 		}

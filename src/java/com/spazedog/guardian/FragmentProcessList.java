@@ -41,6 +41,7 @@ import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.utils.AbstractHandler;
 import com.spazedog.guardian.utils.AbstractThread;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class FragmentProcessList extends AbstractFragment implements OnItemClickListener {
 	
@@ -140,7 +141,7 @@ public class FragmentProcessList extends AbstractFragment implements OnItemClick
 	
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentProcessListLayout), container, false);
+		return inflater.inflate(Conversion.attrToRes(getActivity(), R.attr.layout_fragmentProcessListLayout), container, false);
 	}
 	
 	@Override 

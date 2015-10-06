@@ -35,6 +35,8 @@ import com.spazedog.guardian.scanner.EntityAndroid;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
 import com.spazedog.guardian.scanner.containers.ProcList;
+import com.spazedog.lib.utilsLib.utils.Configuration;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 import java.lang.ref.WeakReference;
 
@@ -53,7 +55,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 		public ViewHolder(ViewGroup view) {
 			super(view);
 			
-			Common.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
+			Configuration.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
 
 			rootView = view.findViewById(R.id.process_item_clickable);
 			textLabel = (TextView) view.findViewById(R.id.process_item_label);
@@ -87,7 +89,7 @@ public class AdapterProcessList extends RecyclerView.Adapter<AdapterProcessList.
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		synchronized(this) {
-			return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Common.resolveAttr(parent.getContext(), R.attr.layout_adapterProcessListItem), parent, false));
+			return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Conversion.attrToRes(parent.getContext(), R.attr.layout_adapterProcessListItem), parent, false));
 		}
 	}
 

@@ -22,7 +22,8 @@ package com.spazedog.guardian.scanner;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
-import android.util.Log;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.application.Controller;
@@ -32,7 +33,6 @@ import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcList;
 import com.spazedog.lib.utilsLib.SparseList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ProcessScanner {
@@ -79,36 +79,43 @@ public class ProcessScanner {
 		
 	public static ProcList<?> execute(Context context, ScanMode mode, ProcList<?> processList) {
 		if (hasLibrary()) {
-			List<Integer> tempList = null;
 			int[] pidList = null;
-			
-			if (mode == ScanMode.EVALUATE_COLLECTION && processList != null) {
+            List<Integer> tempList = null;
+
+            if (mode == ScanMode.EVALUATE_COLLECTION && processList != null) {
                 tempList = new SparseList<Integer>(processList.getEntitySize());
 
-				for (ProcEntity<?> entity : processList) {
-					tempList.add(entity.getProcessId());
-					tempList.add(entity.getProcessUid());
-					tempList.add(entity.getImportance());
-				}
-				
-			} else if (mode != ScanMode.EVALUATE_COLLECTION && mode != ScanMode.COLLECT_CPU) {
-				ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-				List<RunningAppProcessInfo> runningProcesses = manager.getRunningAppProcesses();
+                for (ProcEntity<?> entity : processList) {
+                    tempList.add(entity.getProcessId());
+                    tempList.add(entity.getProcessUid());
+                    tempList.add(entity.getImportance());
+                }
+
+            } else if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP_MR1 && (mode != ScanMode.EVALUATE_COLLECTION && mode != ScanMode.COLLECT_CPU)) {
+                /*
+                 * From Android 5.1.1 and onwards, we no longer have access to getRunningAppProcesses().
+                 * All we will get is information about our own processes. That is unless we include the
+                 * REAL_GET_TASK permission and copy the app to /system/priv-app.
+                 */
+                ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                List<RunningAppProcessInfo> runningProcesses = manager.getRunningAppProcesses();
                 tempList = new SparseList<Integer>(runningProcesses.size());
-				
-				if (runningProcesses != null) {
-					for (RunningAppProcessInfo androidProcess : runningProcesses) {
-						tempList.add(androidProcess.pid);
-						tempList.add(androidProcess.uid);
-						tempList.add(androidProcess.importance);
-					}
-				}
-			}
-			
-			pidList = new int[tempList.size()];
-			for (int i=0; i < pidList.length; i++) {
-				pidList[i] = tempList.get(i);
-			}
+
+                if (runningProcesses != null) {
+                    for (RunningAppProcessInfo androidProcess : runningProcesses) {
+                        tempList.add(androidProcess.pid);
+                        tempList.add(androidProcess.uid);
+                        tempList.add(androidProcess.importance);
+                    }
+                }
+            }
+
+            if (tempList != null) {
+                pidList = new int[tempList.size()];
+                for (int i = 0; i < pidList.length; i++) {
+                    pidList[i] = tempList.get(i);
+                }
+            }
 			
 			String[][] statCollection = getProcessList(pidList, mode != ScanMode.COLLECT_PROCESSES);
 			

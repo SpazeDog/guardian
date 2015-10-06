@@ -25,14 +25,20 @@
 			        app:summary_text="How often to check processes"
 			        app:array_names="@array/interval_names"
 			        app:array_values="@array/interval_values" />
-		        
-		        <com.spazedog.guardian.views.SpinnerWidget
-		            style="?attr/widgetViewStyle"
-		            android:id="@+id/config_engine"
-			        app:title_text="Monitoring Engine"
-			        app:summary_text="Use either a persistent background service or an alarm scheduled service"
-			        app:array_names="@array/service_engine_names"
-			        app:array_values="@array/service_engine_values" />
+
+                <com.spazedog.guardian.views.SpinnerWidget
+                    style="?attr/widgetViewStyle"
+                    android:id="@+id/config_engine"
+                    app:title_text="Monitoring Engine"
+                    app:summary_text="Use either a persistent background service or an alarm scheduled service"
+                    app:array_names="@array/service_engine_names"
+                    app:array_values="@array/service_engine_values" />
+
+                <com.spazedog.guardian.views.CheckBoxWidget
+                    style="?attr/widgetViewStyle"
+                    android:id="@+id/config_notify"
+                    app:title_text="Persistent Notification"
+                    app:summary_text="Display a persistent notification to avoid having Android kill the service" />
 		        
 		        <com.spazedog.guardian.views.CheckBoxWidget
 		            style="?attr/widgetViewStyle"

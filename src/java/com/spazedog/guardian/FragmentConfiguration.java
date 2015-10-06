@@ -37,6 +37,7 @@ import com.spazedog.guardian.views.SpinnerWidget;
 import com.spazedog.guardian.views.WidgetView;
 import com.spazedog.guardian.views.WidgetView.WidgetChangeListener;
 import com.spazedog.lib.rootfw4.RootFW;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class FragmentConfiguration extends AbstractFragment implements IServiceListener, WidgetChangeListener {
 	
@@ -50,12 +51,14 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 			FragmentConfiguration fragment = getReference();
 			
 			if (fragment != null) {
+                fragment.mNotifyCheckBox.setWidgetEnabled( msg.what == Status.STOPPED || msg.what == Status.STARTED );
 				fragment.mIntervalSpinner.setWidgetEnabled( msg.what == Status.STOPPED || msg.what == Status.STARTED );
 				fragment.mEngineSpinner.setWidgetEnabled( msg.what == Status.STOPPED || msg.what == Status.STARTED );
 			}
 		}
 	}
-	
+
+	protected CheckBoxWidget mNotifyCheckBox;
 	protected CheckBoxWidget mLinuxCheckBox;
 	protected CheckBoxWidget mRootCheckBox;
 	protected SpinnerWidget mIntervalSpinner;
@@ -74,7 +77,7 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(Common.resolveAttr(this.getActivity(), R.attr.layout_fragmentConfigurationLayout), container, false);
+		return inflater.inflate(Conversion.attrToRes(this.getActivity(), R.attr.layout_fragmentConfigurationLayout), container, false);
 	}
 	
 	@Override
@@ -84,6 +87,10 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		Settings settings = getSettings();
 		
 		mServiceHandler = new ServiceHandler(this);
+
+        mNotifyCheckBox = (CheckBoxWidget) view.findViewById(R.id.config_notify);
+        mNotifyCheckBox.setChecked( settings.persistentNotify() );
+        mNotifyCheckBox.setVisibility("persistent".equals(settings.getServiceEngine()) ? View.VISIBLE : View.GONE);
 		
 		mLinuxCheckBox = (CheckBoxWidget) view.findViewById(R.id.config_linux_proc);
 		mLinuxCheckBox.setChecked( settings.monitorLinux() );
@@ -136,7 +143,8 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		super.onStart();
 		
 		getController().addServiceListener(this);
-		
+
+        mNotifyCheckBox.setWidgetChangeListener(this);
 		mLinuxCheckBox.setWidgetChangeListener(this);
 		mRootCheckBox.setWidgetChangeListener(this);
 		mIntervalSpinner.setWidgetChangeListener(this);
@@ -154,7 +162,8 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 		super.onStop();
 		
 		getController().removeServiceListener(this);
-		
+
+        mNotifyCheckBox.setWidgetChangeListener(null);
 		mLinuxCheckBox.setWidgetChangeListener(null);
 		mRootCheckBox.setWidgetChangeListener(null);
 		mIntervalSpinner.setWidgetChangeListener(null);
@@ -178,6 +187,7 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 			getSettings().setServiceInterval( Integer.valueOf( (String) newValue ) );
 			
 		} else if (view == mEngineSpinner) {
+            mNotifyCheckBox.setVisibility("persistent".equals((String) newValue) ? View.VISIBLE : View.GONE);
 			getSettings().setServiceEngine( (String) newValue );
 			
 		} else if (view == mThresholdSpinnerInt) {
@@ -227,6 +237,9 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 			} else {
 				getSettings().isRootEnabled(false);
 			}
-		}
+
+		} else if (view == mNotifyCheckBox) {
+            getSettings().persistentNotify((Boolean) newValue);
+        }
 	}
 }

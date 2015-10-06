@@ -28,6 +28,7 @@ import com.spazedog.guardian.views.CheckBoxWidget;
 import com.spazedog.guardian.views.TextboxWidget;
 import com.spazedog.guardian.views.WidgetView;
 import com.spazedog.lib.rootfw4.RootFW;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class FragmentProcessDetails extends AbstractFragment implements WidgetView.WidgetChangeListener {
 	
@@ -54,7 +55,7 @@ public class FragmentProcessDetails extends AbstractFragment implements WidgetVi
 
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentProcessDetailsLayout), container, false);
+		return inflater.inflate(Conversion.attrToRes(getActivity(), R.attr.layout_fragmentProcessDetailsLayout), container, false);
 	}
 	
 	@Override 

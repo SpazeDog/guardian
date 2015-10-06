@@ -28,6 +28,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Parcel;
 import android.util.Log;
 
@@ -359,12 +361,22 @@ public class EntityAndroid extends ProcEntity<EntityAndroid> {
 
                 } catch (Throwable e) {
                     /*
-                     * Otherwise we will have to look for it
+                     * Otherwise we will have to look for it.
+                     * Note that we cannot access Android's list of running processes in Android 5.1.1 and above
                      */
-                    RunningAppProcessInfo appInfo = getAndroidAppInfo();
+                    if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP_MR1) {
+                        RunningAppProcessInfo appInfo = getAndroidAppInfo();
 
-                    if (appInfo != null) {
-                        mEntityPackageName = appInfo.pkgList[0];
+                        if (appInfo != null) {
+                            mEntityPackageName = appInfo.pkgList[0];
+                        }
+
+                    } else {
+                        String[] pkgList = mContext.getPackageManager().getPackagesForUid( getProcessUid() );
+
+                        if (pkgList != null) {
+                            mEntityPackageName = pkgList[0];
+                        }
                     }
                 }
             }
