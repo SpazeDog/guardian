@@ -80,6 +80,7 @@ public final class PersistentService extends MonitorService {
 
                 } else if (isNotifyShowing) {
                     stopForeground(true);
+					isNotifyShowing = false;
                 }
 				
 				while (oStatus == Status.STARTED && timeout > 0) {
