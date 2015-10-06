@@ -32,6 +32,7 @@ import android.view.ViewGroup;
 import com.spazedog.guardian.db.WhiteListDB;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.utils.AbstractFragment;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class FragmentWhiteList extends AbstractFragment {
 	
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentWhitelistListLayout), container, false);
+		return inflater.inflate(Conversion.attrToRes(getActivity(), R.attr.layout_fragmentWhitelistListLayout), container, false);
 	}
 	
 	@Override 

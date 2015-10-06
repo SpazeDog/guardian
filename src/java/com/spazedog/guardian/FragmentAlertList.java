@@ -37,6 +37,7 @@ import com.spazedog.guardian.AdapterAlertList.OnItemClickListener;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
 import com.spazedog.guardian.db.AlertListDB;
 import com.spazedog.guardian.utils.AbstractFragment;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class FragmentAlertList extends AbstractFragment implements OnItemClickListener {
 	
@@ -53,7 +54,7 @@ public class FragmentAlertList extends AbstractFragment implements OnItemClickLi
 	
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(Common.resolveAttr(getActivity(), R.attr.layout_fragmentAlertListLayout), container, false);
+		return inflater.inflate(Conversion.attrToRes(getActivity(), R.attr.layout_fragmentAlertListLayout), container, false);
 	}
 	
 	@Override 

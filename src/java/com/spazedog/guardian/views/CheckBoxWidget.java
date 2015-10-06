@@ -28,6 +28,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class CheckBoxWidget extends WidgetView<CompoundButton> implements OnCheckedChangeListener {
 	
@@ -38,7 +39,7 @@ public class CheckBoxWidget extends WidgetView<CompoundButton> implements OnChec
 	}
 	
 	public CheckBoxWidget(Context context, AttributeSet attrs) {
-		this(context, attrs, Common.resolveAttr(context, R.attr.layout_viewCheckboxWidget));
+		this(context, attrs, Conversion.attrToRes(context, R.attr.layout_viewCheckboxWidget));
 	}
 	
 	public CheckBoxWidget(Context context, AttributeSet attrs, int layoutRes) {

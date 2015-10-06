@@ -30,6 +30,7 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public abstract class WidgetView<T extends View> extends ExtendedLinearLayout {
 	
@@ -49,7 +50,7 @@ public abstract class WidgetView<T extends View> extends ExtendedLinearLayout {
 	}
 	
 	public WidgetView(Context context, AttributeSet attrs) {
-		this(context, attrs, Common.resolveAttr(context, R.attr.layout_viewWidgetLayout));
+		this(context, attrs, Conversion.attrToRes(context, R.attr.layout_viewWidgetLayout));
 	}
 	
 	public WidgetView(Context context, AttributeSet attrs, int layoutRes) {

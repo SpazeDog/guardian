@@ -34,6 +34,8 @@ import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.backend.containers.ThresholdItem;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
+import com.spazedog.lib.utilsLib.utils.Configuration;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 import java.lang.ref.WeakReference;
 
@@ -50,8 +52,8 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 		
 		public ViewHolder(View view) {
 			super(view);
-			
-			Common.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
+
+			Configuration.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
 
             rootView = view.findViewById(R.id.process_item_clickable);
             textExplain = (TextView) view.findViewById(R.id.process_item_explain);
@@ -142,7 +144,7 @@ public class AdapterAlertList extends RecyclerView.Adapter<AdapterAlertList.View
 
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-		return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Common.resolveAttr(parent.getContext(), R.attr.layout_adapterAlertListItem), parent, false));
+		return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Conversion.attrToRes(parent.getContext(), R.attr.layout_adapterAlertListItem), parent, false));
 	}
 
     @Override

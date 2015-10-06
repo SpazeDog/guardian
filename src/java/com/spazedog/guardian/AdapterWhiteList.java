@@ -31,6 +31,8 @@ import android.widget.TextView;
 import com.spazedog.guardian.application.Controller;
 import com.spazedog.guardian.scanner.containers.ProcEntity;
 import com.spazedog.guardian.scanner.containers.ProcEntity.DataLoader;
+import com.spazedog.lib.utilsLib.utils.Configuration;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -45,7 +47,7 @@ public class AdapterWhiteList extends RecyclerView.Adapter<AdapterWhiteList.View
 		public ViewHolder(View view) {
 			super(view);
 
-			Common.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
+			Configuration.setTypeFace(view, Common.TYPEFACE.DefaultRegular(view.getContext()));
 
 			textLabel = (TextView) view.findViewById(R.id.process_item_label);
 			textName = (TextView) view.findViewById(R.id.process_item_name);
@@ -95,7 +97,7 @@ public class AdapterWhiteList extends RecyclerView.Adapter<AdapterWhiteList.View
 
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-		return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Common.resolveAttr(parent.getContext(), R.attr.layout_adapterWhitelistListItem), parent, false));
+		return new ViewHolder((ViewGroup) LayoutInflater.from(parent.getContext()).inflate(Conversion.attrToRes(parent.getContext(), R.attr.layout_adapterWhitelistListItem), parent, false));
 	}
 	
 	public void updateDataSet(List<ProcEntity<?>> entities) {

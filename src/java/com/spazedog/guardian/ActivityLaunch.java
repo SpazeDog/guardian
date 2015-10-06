@@ -39,6 +39,8 @@ import android.view.ViewGroup;
 import com.spazedog.guardian.utils.AbstractActivity;
 import com.spazedog.guardian.utils.AbstractFragment;
 import com.spazedog.guardian.utils.AbstractFragmentDialog;
+import com.spazedog.lib.utilsLib.utils.Configuration;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class ActivityLaunch extends AbstractActivity implements OnNavigationItemSelectedListener {
 	
@@ -53,7 +55,7 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setContentView( Common.resolveAttr(this, R.attr.layout_activityLaunchLayout) );
+		setContentView( Conversion.attrToRes(this, R.attr.layout_activityLaunchLayout) );
 		
 		mDrawerView = (DrawerLayout) findViewById(R.id.drawer);
 		mNavigationView = (NavigationView) findViewById(R.id.navigation);
@@ -100,7 +102,7 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         
-        Common.setTypeFace(getWindow().getDecorView(), Common.TYPEFACE.DefaultRegular(this));
+        Configuration.setTypeFace(getWindow().getDecorView(), Common.TYPEFACE.DefaultRegular(this));
         
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		if (fragmentManager.findFragmentById(R.id.content) == null) {
@@ -129,7 +131,7 @@ public class ActivityLaunch extends AbstractActivity implements OnNavigationItem
 		FragmentManager manager = getSupportFragmentManager();
 		
 		if (!backStack || manager.findFragmentByTag(tag) == null) {
-			if (backStack && fragment instanceof AbstractFragmentDialog && Common.getDisplaySW(this) >= 600f) {
+			if (backStack && fragment instanceof AbstractFragmentDialog && Configuration.getDisplaySW() >= 600f) {
 				Bundle bundle = fragment.getArguments();
 				bundle.putBoolean("dialog", true);
 				fragment.setArguments(bundle);

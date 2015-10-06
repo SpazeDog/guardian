@@ -24,6 +24,7 @@ import android.util.AttributeSet;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class SwitchWidget extends CheckBoxWidget {
 	
@@ -32,7 +33,7 @@ public class SwitchWidget extends CheckBoxWidget {
 	}
 	
 	public SwitchWidget(Context context, AttributeSet attrs) {
-		this(context, attrs, Common.resolveAttr(context, R.attr.layout_viewSwitchWidget));
+		this(context, attrs, Conversion.attrToRes(context, R.attr.layout_viewSwitchWidget));
 	}
 	
 	public SwitchWidget(Context context, AttributeSet attrs, int layoutRes) {

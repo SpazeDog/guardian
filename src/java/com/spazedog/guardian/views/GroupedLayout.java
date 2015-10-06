@@ -31,6 +31,7 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class GroupedLayout extends ExtendedLinearLayout {
 	
@@ -42,7 +43,7 @@ public class GroupedLayout extends ExtendedLinearLayout {
 	}
 	
 	public GroupedLayout(Context context, AttributeSet attrs) {
-		this(context, attrs, Common.resolveAttr(context, R.attr.layout_viewGroupedLayout));
+		this(context, attrs, Conversion.attrToRes(context, R.attr.layout_viewGroupedLayout));
 	}
 	
 	public GroupedLayout(Context context, AttributeSet attrs, int layoutRes) {

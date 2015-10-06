@@ -37,6 +37,7 @@ import com.spazedog.guardian.views.SpinnerWidget;
 import com.spazedog.guardian.views.WidgetView;
 import com.spazedog.guardian.views.WidgetView.WidgetChangeListener;
 import com.spazedog.lib.rootfw4.RootFW;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class FragmentConfiguration extends AbstractFragment implements IServiceListener, WidgetChangeListener {
 	
@@ -76,7 +77,7 @@ public class FragmentConfiguration extends AbstractFragment implements IServiceL
 
 	@Override 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(Common.resolveAttr(this.getActivity(), R.attr.layout_fragmentConfigurationLayout), container, false);
+		return inflater.inflate(Conversion.attrToRes(this.getActivity(), R.attr.layout_fragmentConfigurationLayout), container, false);
 	}
 	
 	@Override

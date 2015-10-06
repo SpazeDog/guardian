@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import com.spazedog.guardian.Common;
 import com.spazedog.guardian.R;
+import com.spazedog.lib.utilsLib.utils.Conversion;
 
 public class TextboxWidget extends WidgetView<TextView> {
 	
@@ -34,7 +35,7 @@ public class TextboxWidget extends WidgetView<TextView> {
 	}
 	
 	public TextboxWidget(Context context, AttributeSet attrs) {
-		this(context, attrs, Common.resolveAttr(context, R.attr.layout_viewTextboxWidget));
+		this(context, attrs, Conversion.attrToRes(context, R.attr.layout_viewTextboxWidget));
 	}
 	
 	public TextboxWidget(Context context, AttributeSet attrs, int layoutRes) {
