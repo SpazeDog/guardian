@@ -31,6 +31,7 @@ import android.support.v4.app.NotificationCompat;
 import com.spazedog.guardian.ActivityLaunch;
 import com.spazedog.guardian.R;
 import com.spazedog.guardian.application.Controller;
+import com.spazedog.guardian.application.Settings;
 import com.spazedog.guardian.backend.MonitorService.MonitorServiceControl.Status;
 
 public final class PersistentService extends MonitorService {
@@ -49,18 +50,17 @@ public final class PersistentService extends MonitorService {
         perstIntent.putExtras(new Bundle());
 		
 		Controller controller = getController();
+        Settings settings = controller.getSettings();
 		PersistentServiceControl serviceControl = (PersistentServiceControl) controller.getServiceControl();
-		
-		PendingIntent pendingIntent = PendingIntent.getActivity(controller, 0, new Intent(controller, ActivityLaunch.class), 0);
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(controller)
-			.setContentTitle("Guardian")
-			.setContentText("Process monitoring is active")
-			.setSmallIcon(R.mipmap.ic_launcher)
-			.setContentIntent(pendingIntent)
-			.setOngoing(true)
-			.setOnlyAlertOnce(true);
-		
-		startForeground(PERSISTENT_ID, builder.build());
+
+        boolean isNotifyShowing = false;
+        PendingIntent pendingIntent = PendingIntent.getActivity(controller, 0, new Intent(controller, ActivityLaunch.class), 0);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(controller)
+                .setContentTitle("Guardian")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true);
 		
 		serviceControl.alertStateChanged((oStatus = Status.STARTED));
 		
@@ -72,9 +72,15 @@ public final class PersistentService extends MonitorService {
 				int timeout = bundle.getInt("timeout", getSettings().getServiceInterval());
 				long time = SystemClock.elapsedRealtime() + timeout;
 				DateFormat dateFormat = android.text.format.DateFormat.getTimeFormat(controller);
-				
-				builder.setContentText("Last Scan: " + dateFormat.format(new Date()));
-				startForeground(PERSISTENT_ID, builder.build());
+
+                if (settings.persistentNotify()) {
+                    builder.setContentText("Last Scan: " + dateFormat.format(new Date()));
+                    startForeground(PERSISTENT_ID, builder.build());
+                    isNotifyShowing = true;
+
+                } else if (isNotifyShowing) {
+                    stopForeground(true);
+                }
 				
 				while (oStatus == Status.STARTED && timeout > 0) {
 					synchronized (oLock) {
@@ -89,10 +95,12 @@ public final class PersistentService extends MonitorService {
 			}
 			
 		} while (oStatus == Status.STARTED);
-		
-		stopForeground(true);
-		
-		serviceControl.alertStateChanged((oStatus = Status.STOPPED));
+
+        if (isNotifyShowing) {
+            stopForeground(true);
+        }
+
+        serviceControl.alertStateChanged((oStatus = Status.STOPPED));
 	}
 
 	public static final class PersistentServiceControl extends MonitorServiceControl {

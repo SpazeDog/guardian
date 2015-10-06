@@ -114,7 +114,8 @@ public class Controller extends Application implements ApplicationImpl, ISetting
 				}
 				
 				break;
-				
+
+			case SERVICE_NOTIFY_PERSISTENT:
 			case SERVICE_INTERVAL: 
 			case SERVICE_ENGINE: 
 

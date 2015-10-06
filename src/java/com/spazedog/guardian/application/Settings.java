@@ -36,6 +36,7 @@ import com.spazedog.guardian.utils.AbstractHandler;
 public class Settings implements ApplicationImpl {
 	
 	public enum Type {
+		SERVICE_NOTIFY_PERSISTENT,
 		SERVICE_STATE,
 		SERVICE_INTERVAL,
 		SERVICE_THRESHOLD,
@@ -75,7 +76,8 @@ public class Settings implements ApplicationImpl {
 
 	protected Controller mController;
 	protected SharedPreferences mPreferences;
-	
+
+    protected volatile Boolean mSettingsServiceNotify;
 	protected volatile Boolean mSettingsServiceEnabled;
 	protected volatile Integer mSettingsServiceInterval;
 	protected volatile Integer mSettingsServiceThresholdOn;
@@ -169,7 +171,25 @@ public class Settings implements ApplicationImpl {
 		
 		return mSettingsRootEnabled;
 	}
-	
+
+    public void persistentNotify(Boolean notify) {
+        synchronized(mPreferences) {
+            if (persistentNotify() != notify) {
+                mPreferences.edit().putBoolean("persistent_notify", (mSettingsServiceNotify = notify)).apply();
+            }
+
+            invokeServiceListeners(Type.SERVICE_NOTIFY_PERSISTENT);
+        }
+    }
+
+    public Boolean persistentNotify() {
+        if (mSettingsServiceNotify == null) {
+            mSettingsServiceNotify = mPreferences.getBoolean("persistent_notify", true);
+        }
+
+        return mSettingsServiceNotify;
+    }
+
 	public void isServiceEnabled(Boolean enabled) {
 		synchronized(mPreferences) {
 			if (isServiceEnabled() != enabled) {
