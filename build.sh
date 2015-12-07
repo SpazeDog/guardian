@@ -2,6 +2,7 @@
 
 BUILD_PATH="$(readlink -f "$(dirname $0)")"
 BUILD_TYPE="$1"
+BUILD_HOME=~/.gradle/build/$(basename "$BUILD_PATH")/guardian
 
 export PATH="$PATH:$BUILD_PATH"
 

@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-buildDir = '../../build/guardian'
+buildDir = "${System.properties['user.home']}/.gradle/build/${rootProject.name}/${project.name}"
 
 android {
     compileSdkVersion 22
