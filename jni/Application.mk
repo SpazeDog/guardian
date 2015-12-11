@@ -9,6 +9,9 @@ APP_STL := stlport_static
 # The GNU STL implementation does not enable c++11 by default
 APP_CPPFLAGS += -std=c++11
 
+# Enable exception handling
+APP_CPPFLAGS += -fexceptions
+
 # Make sure that we do not use the 4.6 version (Wonder when Google will add 4.9?)
 NDK_TOOLCHAIN_VERSION := 4.8
 
