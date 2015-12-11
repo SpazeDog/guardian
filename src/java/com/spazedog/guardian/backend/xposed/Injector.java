@@ -32,5 +32,6 @@ public class Injector extends InitBridge {
 	@Override
 	public void onSystemInit(Context systemContext) {
 		WakeLockService.init();
+		BypassEnforcement.init();
 	}
 }
