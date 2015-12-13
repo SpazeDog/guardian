@@ -2,10 +2,11 @@
 
 BUILD_PATH="$(readlink -f "$(dirname $0)")"
 BUILD_TYPE="$1"
+BUILD_HOME=~/.gradle/build/$(basename "$BUILD_PATH")/guardian
 
 export PATH="$PATH:$BUILD_PATH"
 
-if [ -z "$BUILD_TYPE" ] || [[ "$BUILD_TYPE" != "debug" && "$BUILD_TYPE" != "release" ]]; then
+if [ -z "$BUILD_TYPE" ] || [[ "$BUILD_TYPE" != "debug" && "$BUILD_TYPE" != "release" && "$BUILD_TYPE" != "lib" ]]; then
     BUILD_TYPE="release"
 fi
 
@@ -31,6 +32,10 @@ if [ -n "$NDK_BUILD" ] && which "$NDK_BUILD" > /dev/null 2>&1; then
         cd "$BUILD_PATH/obj/out"
         rm -rf "$BUILD_PATH/src/libs/processScanner-native.jar" 2> /dev/null
         zip -r "$BUILD_PATH/src/libs/processScanner-native.jar" lib/ || exit 1
+
+	if [ "$BUILD_TYPE" = "lib" ]; then
+            exit 0
+	fi
 
         # Build Guardian
         cd "$BUILD_PATH/projects/guardian" || exit 1

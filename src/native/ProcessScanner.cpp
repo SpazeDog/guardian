@@ -17,6 +17,17 @@
  * along with Guardian. If not, see <http://www.gnu.org/licenses/>
  */
 
+/*
+ * This native library is used to collect the stat's of all the currently running processes on a device.
+ * This task has been assigned to C++ because it is much faster at file operations compared to Java.
+ * C++ actually does a well enough job in this area that it is able to do this work 87% faster than
+ * Java, which was the result after some extensive testing in both languages.
+ *
+ * Java is fine to use for file operations. Just not when you need to extract data from
+ * 250-500 files at once.
+ */
+
+#include <android/log.h>
 #include <jni.h>
 #include <dirent.h>
 #include <fstream>
@@ -27,387 +38,765 @@
 #include <utility>
 #include <cctype>
 #include <cstdlib>
+#include <inttypes.h>
+#include <string>
+
+using namespace std;
 
 #define DEBUG_TAG "NDK_GuardianScanner"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "%s", __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, DEBUG_TAG, "%s", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, DEBUG_TAG, "%s", __VA_ARGS__)
+#define CATCH_THROW_JVM_EXCEPTION                                       \
+    catch (const std::bad_alloc &e) {                                   \
+        jclass jc = env->FindClass("java/lang/OutOfMemoryError");       \
+        if(jc) env->ThrowNew (jc, e.what());                            \
+    } catch (const std::ios_base::failure &e) {                         \
+        jclass jc = env->FindClass("java/io/IOException");              \
+        if(jc) env->ThrowNew (jc, e.what());                            \
+    } catch (const std::exception &e) {                                 \
+        jclass jc = env->FindClass("java/lang/Error");                  \
+        if(jc) env->ThrowNew (jc, e.what());                            \
+    } catch(...) {                                                      \
+        jclass jc = env->FindClass("java/lang/Error");                  \
+        if(jc) env->ThrowNew (jc, "unidentified exception");            \
+    }
+
+
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ * The currently used stlport_static does not support all c++11 features.
+ * But because of the below issue, among others, with c++_static, which is still not fixed,
+ * we will stick to the more stable, yet limited chain. But in case Google should
+ * make good on their word and fix the other, let's keep the code compatible by adding
+ * the stlport_static missing functions. That way we can simply remove them when/if we switch chain.
+ *
+ *      Issue: https://code.google.com/p/android/issues/detail?can=2&start=0&num=100&q=&colspec=ID%20Status%20Priority%20Owner%20Summary%20Stars%20Reporter%20Opened&groupby=&sort=&id=68779
+ */
+static string to_string(int val) {
+    stringstream stream;
+    stream << val;
+
+    return stream.str();
+}
+
+static string to_string(long val) {
+    stringstream stream;
+    stream << val;
+
+    return stream.str();
+}
 
 /*
- * This native library is used to collect the stat's of all the currently running processes on a device.
- * This task has been assigned to C++ because it is much faster at file operations compared to Java.
- * C++ actually does a well enough job in this area that it is able to do this work 87% faster than
- * Java, which was a result after some extensive testing in both languages.
- *
- * Java is fine to use for file operations. Just not when you need to extract data from
- * 250-500 files at once.
+ * Pre-declare our class
  */
+namespace spazedog {
+    typedef pair<string, string> PListValue;
+    typedef pair<string, PListValue> PListWrapper;
+    typedef vector<PListWrapper> PListArray;
+
+    class ProcessScanner {
+        stringstream mLogStream;
+
+        /*
+         * Avoid to much realloc for each process by keeping a shared set of vars
+         */
+        struct {
+            ifstream stream;
+            string line;
+            string file;
+            string word;
+            bool groupChk;
+            bool spaceChk;
+            bool cpuChk;
+            int curPos;
+            int maxPos;
+            int curWord;
+            int arrPos;
+            int arrCount;
+        } DataVars;
+
+        struct {
+            string word;
+            size_t posBegin;
+            size_t posEnd;
+            size_t posSl;
+            size_t posCn;
+        } SyntaxVars;
+
+        string fixNameSyntax(string &name);
+        void addData(JNIEnv *env, jobject &wrapper, string &data);
+        bool isIntegral(string &data);
+        string prntString(string &data);
+        pair<string, string> cpuInfo(string &data);
+        void flushLog();
+
+    public:
+
+        jobject scan(JNIEnv *env, jintArray processList, jint scanFlags);
+
+    } scanner;
+}
 
 extern "C" {
 
-	static int mCustomValues = 2;
-    static bool mCollectValues = false;
+    const int FLAG_ALL = 0x00000001;
+    const int FLAG_SORT = 0x00000002;
 
-	/**
-	 * =====================================================================
-	 * ---------------------------------------------------------------------
-	 */
-	static std::string fixProcessNameSyntax(std::string name) {
-		size_t posSl = name.find('/');
-		size_t posCn = name.find('-');
-		std::string ret;
+    /*
+     * Pre-declare our jni functions
+     */
+    void jniInit(JNIEnv *env, jobject envObj, jboolean debug);
+    jobject jniScan(JNIEnv *env, jobject envObj, jintArray processList, jint flags);
 
-		if (posSl != std::string::npos) {
-			if (posSl > 0) {
-				ret = name.substr(0, posSl);
+    static jclass JSTRING_CLASS;
+    static jclass JLIST_CLASS;
 
-			} else {
-				/*
-				 * Some cmdline files contains something like "/system/bin/binary--command-args"
-				 * We only want the name, not the path or the args.
-				 */
-				size_t startPos = (posCn != std::string::npos) ? name.rfind('/', posCn)+1 : name.rfind('/')+1;
-				size_t endPos = (posCn != std::string::npos) ? name.find('-', startPos) : name.size();
+    static jmethodID JLIST_INIT_METHOD_ID;
+    static jmethodID JLIST_ADD_METHOD_ID;
 
-				ret = name.substr(startPos, endPos);
-			}
+    static bool DEBUG = false;
+    static const char *JCLASS_PATH = "com/spazedog/guardian/scanner/ProcessScanner";
+    static const JNINativeMethod JMETHOD_TABLE[] = {
+            {"jniInit", "(Z)V", (void*) jniInit},
+            {"jniScan", "([II)Ljava/util/List;", (void*) jniScan}
+    };
 
-		} else if (posCn != std::string::npos) {
-			ret = name.substr(0, posCn);
+    /**
+     * =====================================================================
+     * ---------------------------------------------------------------------
+     */
+    typedef union {
+        JNIEnv* read;
+        void* write;
+    } UnionJNIEnv;
 
-		} else {
-			return name;
-		}
+    jint JNI_OnLoad(JavaVM *vm, void* reserved) {
+        LOGI("Loading Library");
 
-		return ret;
-	}
+        UnionJNIEnv env;
 
-	/**
-	 * =====================================================================
-	 * ---------------------------------------------------------------------
-	 */
-
-	static std::vector<std::string> splitStatLine(std::string& str) {
-		std::vector<std::string> lines;
-
-		/*
-		 * We have two types of files (/proc/stat) and (/proc/<pid>/stat) which differs a little.
-		 *
-		 *  - /proc/stat = cpu 7650947 104625 1567588 52176062 744598 139 40697 0 0 0
-		 *  - /proc/<pid>/stat = 21 (migration/2) S 2 0 0 0 -1 69247040 0 0 0 0 0 44 0 0 -100 0 1 0 7 0 .........
-		 *
-		 *  The below code can handle both these types of files.
-		 *
-		 *  	CPU Stat (/proc/stat)
-		 *
-		 *  		- [0] = Type (cpu)
-		 *  		- [1] = Total idle time
-		 *  		- [2] = Total uptime (Including idle)
-		 *
-		 *
-		 *  	Process Stat (/proc/<pid>/stat)
-		 *
-		 *  		- [0] = Type (0 or Android importance level)
-		 *  		- [1] = Process ID (pid)
-		 *  		- [2] = Process Name
-		 *  		- [3] = UTime
-		 *  		- [4] = STime
-		 *  		- [5] = CUTime
-		 *  		- [6] = CSTime
-		 *  		- [7] = Process uptime (The cpu total uptime at process launch)
-		 */
-		bool isGrouped = false;
-		std::string current = "";
-		long currentInt = 0;
-		int i = 0;
-		bool cpu = false;
-
-		for(char& c : str) {
-			if (i == 0 && c == 'c') {  // The CPU stat starts with 'cpu'
-				cpu = true;
-			}
-
-			if (std::isspace(c) && !isGrouped) {
-				if (!current.empty()) {
-					/*
-					 * Create one single Total Uptime from the CPU stat
-					 */
-					if (cpu && i > 0) {
-						currentInt += std::atol(current.c_str());
-
-						if (i == 5) {
-							lines.push_back(current);
-						}
-
-					} else {
-						lines.push_back(current);
-					}
-
-					current = "";
-				}
-
-				i += 1;  // Count for each section that has past (divided by space, except for process names)
-
-			} else if (!cpu && (c == '(' || c == ')')) {
-				/*
-				 * Ignorer space while inside (...)
-				 */
-				isGrouped = c == '(';
-
-			/*
-			 * customValues is the number of values added to the beginning of the original stat content
-			 */
-			} else if (cpu || i <= (mCustomValues + 1) || (i >= (mCustomValues + 13) && i <= (mCustomValues + 16)) || i == (mCustomValues + 21)) {
-				current += c;
-			}
-		}
-
-		if (cpu) {
-			std::stringstream stream;
-			stream << currentInt;
-
-			lines.push_back( stream.str() );
-		}
-
-		return lines;
-	}
-
-	/**
-	 * =====================================================================
-	 * ---------------------------------------------------------------------
-	 */
-	static jobjectArray createProcessData(JNIEnv* env, std::vector<std::string>& lines) {
-		/*
-		 * We will also need to collect the /proc/<pid>/cmdline as this file
-		 * will contain the full process name whenever the one in /proc/<pid>/stat
-		 * has been truncated.
-		 */
-		if (lines.size() > 0 && lines[0] != "cpu") {
-			std::ifstream in( (std::string("/proc/") + lines[mCustomValues] + "/cmdline").c_str() );
-
-			if (in && in.good()) {
-				std::string line = "";
-				std::getline(in, line);
-
-				if (!line.empty()) {
-					lines[mCustomValues+1] = fixProcessNameSyntax(line);
-				}
-			}
-
-			if (in) {
-				in.close();
-			}
-		}
-
-		/*
-		 * Now we just need to add all of the data to a Java String array
-		 */
-		jobjectArray ret = env->NewObjectArray(lines.size(), env->FindClass("java/lang/String"), NULL);
-
-		for (int i = 0; i < lines.size(); i++) {
-			jstring stringObject = env->NewStringUTF( lines[i].c_str() );
-			env->SetObjectArrayElement(ret, i, stringObject);
-			env->DeleteLocalRef(stringObject);
-		}
-
-		return ret;
-	}
-
-	/**
-	 * =====================================================================
-	 * ---------------------------------------------------------------------
-	 */
-	static bool isIntegerString(std::string str) {
-		for (size_t n = 0; n < str.length(); n++) {
-			if (!isdigit( str[ n ] )) {
-				return false;
-			}
-		}
-
-		return str.length() > 0;
-	}
-
-	/**
-	 * =====================================================================
-	 * ---------------------------------------------------------------------
-	 */
-	JNIEXPORT jobjectArray JNICALL Java_com_spazedog_guardian_scanner_ProcessScanner_getProcessList(JNIEnv *env, jobject thisObj, jintArray processList, jboolean collectFromList) {
-		/*
-		 * Whether or not to collect all processes or only the once defined in the processList
-		 */
-		bool listCollection = collectFromList == JNI_TRUE;
-
-		typedef std::pair<std::string, std::string> TypeDefPair;
-		typedef std::vector< std::pair<std::string, TypeDefPair> > TypeDefVector;
-
-		/*
-		 * Unpack the predefined process list from JVM
-		 */
-		TypeDefVector typeList;
-
-		if (processList != NULL) {
-			int size = env->GetArrayLength(processList);
-			jint* body = env->GetIntArrayElements(processList, 0);
-
-			for (int i=0, x=1, y=2; y < size; i += 3, x += 3, y += 3) {
-				std::stringstream pidStream;
-				std::stringstream uidStream;
-				std::stringstream typeStream;
-
-				pidStream << body[i];
-				uidStream << body[x];
-				typeStream << body[y];
-
-				typeList.push_back( std::pair<std::string, TypeDefPair>(pidStream.str(), TypeDefPair(uidStream.str(), typeStream.str())) );
-			}
-
-		} else {
-            /*
-             * Android 5.1.1 and onwards will not parse any Android Process Info.
-             * We will need to collect this from here instead.
-             */
-            mCollectValues = true;
+        if (vm->GetEnv(&env.write, JNI_VERSION_1_6) != JNI_OK) {
+            LOGE("Error getting JNIEnv"); return -1;
         }
 
-		/*
-		 * Start collecting data from /proc
-		 */
-		std::vector<std::string> lines;
-		std::ifstream in("/proc/stat");
-		struct dirent* procEntity;
-		std::string cpuLine = "";
+        /*
+         * Register the methods that can be called from the Java class
+         */
+        env.read->RegisterNatives(env.read->FindClass(JCLASS_PATH), JMETHOD_TABLE, 2);
 
-		if (in && in.good()) {
-			std::getline(in, cpuLine);
+        /*
+         * Avoid looking for this class on every call.
+         * Just cache it to reuse it.
+         */
+        JSTRING_CLASS = reinterpret_cast<jclass>(env.read->NewGlobalRef(env.read->FindClass("java/lang/String")));
 
-			lines.push_back(cpuLine);
-		}
+        /*
+         * Locate class and method for use with a List object
+         */
+        JLIST_CLASS = reinterpret_cast<jclass>(env.read->NewGlobalRef(env.read->FindClass("com/spazedog/lib/utilsLib/SparseList")));
+        JLIST_INIT_METHOD_ID = env.read->GetMethodID(JLIST_CLASS, "<init>", "()V");
+        JLIST_ADD_METHOD_ID = env.read->GetMethodID(JLIST_CLASS, "add", "(Ljava/lang/Object;)Z");
 
-		if (in) {
-			in.close();
-		}
+        return JNI_VERSION_1_6;
+    }
 
-		if (!listCollection || (mCollectValues || typeList.size() > 0)) {
-			DIR* procDirectory = opendir("/proc");
+    /**
+     * =====================================================================
+     * ---------------------------------------------------------------------
+     */
+    void jniInit(JNIEnv *env, jobject envObj, jboolean debug) {
+        /*
+         * We do not want to handle debug settings for both native and jvm.
+         * Simply parse from jvm.
+         */
+        DEBUG = debug == JNI_TRUE;
+    }
 
-			if (procDirectory != NULL) {
-				while ((procEntity = readdir(procDirectory)) != NULL) {
-					std::string uid = "0";
-					std::string type = "0";
-					std::string entityName = procEntity->d_name;
-					bool isProcess = isIntegerString(entityName);
-					bool isListedProcess = false;
+    /**
+     * =====================================================================
+     * ---------------------------------------------------------------------
+     */
+    jobject jniScan(JNIEnv *env, jobject envObj, jintArray processList, jint scanFlags) {
+        return spazedog::scanner.scan(env, processList, scanFlags);
+    }
+}
 
-					/*
-					 * If isProcess is false, there is no need to search the 'Type List'
-					 */
-					if (isProcess) {
-                        if (!mCollectValues) {
-                            for (TypeDefVector::iterator it = typeList.begin(); it != typeList.end(); ++it) {
-                                if (it->first == entityName) {
-                                    TypeDefPair typePair = it->second;
 
-                                    uid = std::string(typePair.first);
-                                    type = std::string(typePair.second);
-                                    isListedProcess = true;
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+string spazedog::ProcessScanner::prntString(string &data) {
+    string ret = "";
 
-                                    break;
-                                }
-                            }
+    for (char &c : data) {
+        if (c >= 0 && c < 128) {
+            ret += c;
+        }
+    }
 
-                        } else {
-                            in.open( (std::string("/proc/") + procEntity->d_name + "/cgroup").c_str() );
+    return ret;
+}
 
-                            if (in && in.good()) {
-                                /*
-                                 * We do not want the first line
-                                 */
-                                in.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+void spazedog::ProcessScanner::flushLog() {
+    string line;
 
-                                std::string line;
-                                std::getline(in, line);
+    /*
+     * Logcat has a max line policy before starting to truncate.
+     * So we write the log line by line.
+     */
+    while (getline(mLogStream, line)) {
+        LOGD(line.c_str());
+    }
 
-                                size_t pos = line.find("uid_");
+    mLogStream.str("");
+}
 
-                                /*
-                                 * In Android 5.1.1 we cannot get Android processes using the framework tools.
-                                 * Instead we check the cgroup file which will contain the uid if the process is not
-                                 * a Linux process.
-                                 */
-                                if (pos != std::string::npos) {
-                                    pos += 4; // GoTo the end of 'uid_'
-                                    uid = line.substr(pos, (line.find_first_of("/", pos)-pos));
-                                    type = "1";
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+pair<string, string> spazedog::ProcessScanner::cpuInfo(string &data) {
+    pair<string, string> ret;
 
-                                    /*
-                                     * If the Java ProcessScanner class parsed a NULL list, it means that it
-                                     * wanted to only list Android processes. So we set this to true on all Android processes
-                                     * to account for this scenario.
-                                     */
-                                    isListedProcess = true;
-                                }
-                            }
+    string dataString = "";
+    long dataUptime = 0;
 
-                            if (in) {
-                                in.close();
+    int maxPos = data.length()-1;
+    int curPos = 0;
+    int curWord = 0;
+    bool preSpace = false;
+
+    for (char &c : data) {
+        if (!isspace(c)) {
+            preSpace = false;
+
+            if (curWord > 0) {
+                dataString += c;
+            }
+        }
+
+        if (isspace(c) || curPos == maxPos) {
+            if (curWord > 0 && !dataString.empty()) {
+                dataUptime += atol(dataString.c_str());
+
+                if (curWord == 4) {
+                    /*
+                     * Idle
+                     */
+                    ret.first = dataString;
+                }
+
+                dataString = "";
+            }
+
+            if (!preSpace) {
+                curWord++;
+            }
+
+            preSpace = true;
+        }
+
+        curPos++;
+    }
+
+    ret.second = to_string(dataUptime);
+
+    return ret;
+}
+
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+bool spazedog::ProcessScanner::isIntegral(string &data) {
+    for(char &c : data) {
+        if (!isdigit(c)) {
+            return false;
+        }
+    }
+
+    return data.length() > 0;
+}
+
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+string spazedog::ProcessScanner::fixNameSyntax(string &name) {
+    if (name.length() > 0) {
+        SyntaxVars.posSl = name.find('/');
+        SyntaxVars.posCn = name.find('-');
+
+        if (SyntaxVars.posSl != string::npos) {
+            if (SyntaxVars.posSl > 0) {
+                SyntaxVars.word = name.substr(0, SyntaxVars.posSl);
+
+            } else {
+                /*
+                 * Some cmdline files contains something like "/system/bin/binary--command-args"
+                 * We only want the name, not the path or the args.
+                 */
+                SyntaxVars.posBegin = (SyntaxVars.posCn != string::npos) ? name.rfind('/', SyntaxVars.posCn) + 1 : name.rfind('/') + 1;
+                SyntaxVars.posEnd = (SyntaxVars.posCn != string::npos) ? name.find('-', SyntaxVars.posBegin) : name.size();
+
+                SyntaxVars.word = name.substr(SyntaxVars.posBegin, SyntaxVars.posEnd);
+            }
+
+        } else if (SyntaxVars.posCn != string::npos) {
+            SyntaxVars.word = name.substr(0, SyntaxVars.posCn);
+
+        } else {
+            return name;
+        }
+    }
+
+    return SyntaxVars.word;
+}
+
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+void spazedog::ProcessScanner::addData(JNIEnv *env, jobject &wrapper, string &data) {
+    if (data.length() > 0) {
+        /*
+         * Reset variables
+         */
+        DataVars.word = "";
+        DataVars.spaceChk = false;
+        DataVars.groupChk = false;
+        DataVars.cpuChk = data.at(0) == 'c';
+        DataVars.maxPos = data.length()-1;
+        DataVars.curPos = 0;
+        DataVars.curWord = 0;
+        DataVars.arrCount = 0;
+
+        jobjectArray lines = env->NewObjectArray((DataVars.cpuChk ? 3 : 11), JSTRING_CLASS, NULL);
+
+        if (DEBUG) {
+            mLogStream << "\n\t\tData Size = ";
+            mLogStream << (DataVars.cpuChk ? 3 : 11);
+        }
+
+        /*
+         * We have two types of files (/proc/stat) and (/proc/<pid>/stat) which differs a little.
+         *
+         *  - /proc/stat = cpu 7650947 104625 1567588 52176062 744598 139 40697 0 0 0 (Rebuild to: cpu <idle> <uptime>)
+         *  - /proc/<pid>/stat = 21 (migration/2) S 2 0 0 0 -1 69247040 0 0 0 0 0 44 0 0 -100 0 1 0 7 0 .........
+         *
+         *  The below code can handle both these types of files.
+         *
+         *  	Custom array for CPU Stat (/proc/stat)
+         *
+         *  		- [0] = Type (cpu)
+         *  		- [1] = Total idle time
+         *  		- [2] = Total uptime (Including idle)
+         *
+         *
+         *  	Custom array for Process Stat (/proc/<pid>/stat)
+         *
+         *  		- [0] = Process Type (0 for Linux processes or Android importance level for Android processes (1 if located by FLAG_SORT))
+         *  		- [1] = Process UID
+         *  		- [2] = Process PID
+         *  		- [3] = Process Name
+         *  		- [4] = Process UTime
+         *  		- [5] = Process STime
+         *  		- [6] = Process CUTime
+         *  		- [7] = Process CSTime
+         *  		- [8] = Process uptime (The cpu total uptime at process launch)
+         *  		- [9] = CPU total idle time
+         *  		- [10] = CPU total uptime (Including cpu idle)
+         */
+        for (char &c : data) {
+            if (!isspace(c) || DataVars.groupChk) {
+                DataVars.spaceChk = false;
+
+                if (!DataVars.cpuChk && (c == '(' || c == ')')) {
+                    /*
+                     * Ignorer space while inside (...)
+                     */
+                    DataVars.groupChk = c == '(';
+
+                } else if (DataVars.cpuChk || DataVars.curWord <= 5 || (DataVars.curWord >= 17 && DataVars.curWord <= 20) || DataVars.curWord == 25) { // Contains 5 custom values + /proc/<pid>/stat
+                    DataVars.word += c;
+                }
+            }
+
+            if ((isspace(c) && !DataVars.groupChk) || DataVars.curPos == DataVars.maxPos) {
+                if (!DataVars.spaceChk && !DataVars.word.empty()) {
+                    if (!DataVars.cpuChk && DataVars.curWord == 5) {
+                        DataVars.stream.open(DataVars.file.c_str());
+
+                        if (DataVars.stream.good()) {
+                            getline(DataVars.stream, DataVars.line);
+
+                            if (!DataVars.line.empty()) {
+                                DataVars.word = fixNameSyntax(DataVars.line);
                             }
                         }
-					}
 
-					if (isProcess && (!collectFromList || isListedProcess)) {
-						in.open( (std::string("/proc/") + procEntity->d_name + "/stat").c_str() );
+                        DataVars.stream.close();
+                        DataVars.stream.clear();
 
-						if (in && in.good()) {
-							std::string line = "";
-							std::getline(in, line);
+                    } else if (!DataVars.cpuChk && DataVars.curWord == 4) {
+                        DataVars.file = "/proc/";
+                        DataVars.file += DataVars.word;
+                        DataVars.file += "/cmdline";
+                    }
 
-							std::stringstream asambler;
-							asambler << type;
-							asambler << " ";
-							asambler << uid;
-							asambler << " ";
-							asambler << line;
+                    /*
+                     * We want index 2 and 3 to be placed at the last two locations.
+                     * This way is much faster than having to do more string operations in scan(),
+                     * while also having to do a word count of the entire stat output in order to locate
+                     * them if placed at the end of that string. The stat output does not have the same length
+                     * on all kernels.
+                     */
+                    if (!DataVars.cpuChk && DataVars.curWord == 2 || DataVars.curWord == 3) {
+                        DataVars.arrPos = (DataVars.curWord + 7);
 
-							if (!line.empty()) {
-								lines.push_back( asambler.str() );
-							}
-						}
+                    } else if (!DataVars.cpuChk && DataVars.curWord > 3) {
+                        DataVars.arrPos = (DataVars.arrCount - 2);
 
-						if (in) {
-							in.close();
-						}
-					}
-				}
+                    } else {
+                        DataVars.arrPos = DataVars.arrCount;
+                    }
 
-				closedir(procDirectory);
-			}
-		}
+                    if (DEBUG) {
+                        mLogStream << "\n\t\t[";
+                        mLogStream << DataVars.arrPos;
+                        mLogStream << "] = ";
+                        mLogStream << prntString(DataVars.word);
+                    }
 
-		if (lines.size() > 0) {
-			std::vector<std::string> cpuList = splitStatLine(lines[0]);
+                    try {
+                        jstring stringObject = env->NewStringUTF(DataVars.word.c_str());
+                        env->SetObjectArrayElement(lines, DataVars.arrPos, stringObject);
+                        env->DeleteLocalRef(stringObject);
 
-			jobjectArray cpuJavaList = createProcessData(env, cpuList);
-			jobjectArray ret = env->NewObjectArray(lines.size(), env->GetObjectClass(cpuJavaList), 0);
+                    } CATCH_THROW_JVM_EXCEPTION
 
-			env->SetObjectArrayElement(ret, 0, cpuJavaList);
-			env->DeleteLocalRef(cpuJavaList);
+                    DataVars.arrCount++;    // Count for next array position
+                }
 
-			for (int i=1; i < lines.size(); i++) {
-				std::vector<std::string> list = splitStatLine(lines[i]);
+                if (!DataVars.spaceChk) {
+                    DataVars.curWord++;     // Count for next word in the line (divided by space, except for process names)
+                }
 
-				/*
-				 * Add the CPU stat's to the process stat's
-				 */
-				if (cpuList.size() >= 3) {
-					list.push_back(cpuList[1]);
-					list.push_back(cpuList[2]);
-				}
+                DataVars.spaceChk = true;
+                DataVars.word = "";
+            }
 
-				jobjectArray javaList = createProcessData(env, list);
-				env->SetObjectArrayElement(ret, i, javaList);
-				env->DeleteLocalRef(javaList);
-			}
+            DataVars.curPos++;
+        }
 
-			return ret;
-		}
+        /*
+         * Add this line to the wrapper List
+         */
+        try {
+            env->CallBooleanMethod(wrapper, JLIST_ADD_METHOD_ID, lines);
 
-		return NULL;
-	}
-};
+        } CATCH_THROW_JVM_EXCEPTION
+    }
+}
+
+/**
+ * =====================================================================
+ * ---------------------------------------------------------------------
+ */
+jobject spazedog::ProcessScanner::scan(JNIEnv *env, jintArray processList, jint scanFlags) {
+    int32_t flags = (int32_t) scanFlags;
+    PListArray processes;
+
+    /*
+     * Create a Java List object for the return data
+     */
+    jobject ret = env->NewObject(JLIST_CLASS, JLIST_INIT_METHOD_ID);
+
+    /*
+     * Collect information about parsed processes.
+     * This is a very primitive int array for performance reasons.
+     */
+    if (processList != NULL) {
+        int size = env->GetArrayLength(processList);
+        jint *elements = env->GetIntArrayElements(processList, 0);
+        string ppid, puid, ptype;
+
+        for (int i=0; i+2 < size; i++) {
+            ppid = to_string((int) elements[i]);
+            puid = to_string((int) elements[++i]);
+            ptype = to_string((int) elements[++i]);
+
+            processes.push_back( PListWrapper(ppid, PListValue(puid, ptype)) );
+        }
+    }
+
+    if (DEBUG) {
+        mLogStream << "=============================================";
+        mLogStream << "\n---------------------------------------------";
+        mLogStream << "\nStarting process scan";
+        mLogStream << "\n\t\tProcess Size = ";
+        mLogStream << processes.size();
+        mLogStream << "\n\t\tFlag SORT = ";
+        mLogStream << ((flags & FLAG_SORT) != 0 ? "TRUE" : "FALSE");
+        mLogStream << "\n\t\tFlag ALL = ";
+        mLogStream << ((flags & FLAG_ALL) != 0 ? "TRUE" : "FALSE");
+    }
+
+
+    /*
+     * Collect new process information
+     */
+
+    DIR *procDir = opendir("/proc");
+    ifstream procStream;
+    struct dirent *procEntry = NULL;
+    string procData;
+
+    string entFile;
+    string entBuffer;
+    string entUid;
+    string entPid;
+    string entType;
+    bool entIsListed = false;
+
+    int listCount = 0;
+    int scanCount = 0;
+
+    size_t sortBegin;
+    size_t sortEnd;
+
+    pair<string, string> cpuStat;
+
+    do {
+        if (procEntry == NULL) {
+            /*
+             * The first entry should be the CPU info
+             */
+            procStream.open("/proc/stat");
+
+            if (procStream.good()) {
+                getline(procStream, procData);
+
+                cpuStat = cpuInfo(procData);
+
+                if (DEBUG) {
+                    mLogStream << "\nCollecting CPU information";
+                    mLogStream << "\n\t\tStat Line = ";
+                    mLogStream << prntString(procData);
+                    mLogStream << "\n\t\tIdle = ";
+                    mLogStream << prntString(cpuStat.first);
+                    mLogStream << "\n\t\tUptime = ";
+                    mLogStream << prntString(cpuStat.second);
+                }
+
+                /*
+                 * Since we have to collect this for all of the processes anyway,
+                 * we might as well make use of it here to.
+                 */
+                procData = "cpu ";
+                procData += cpuStat.first;
+                procData += " ";
+                procData += cpuStat.second;
+
+                addData(env, ret, procData);
+            }
+
+            procStream.close();
+            procStream.clear();
+
+        } else {
+            /*
+             * Entry 1 to size-1 should contain all processes
+             */
+            entPid = procEntry->d_name;
+            entUid = "0";
+            entType = "0";
+            entIsListed = false;
+
+            /*
+             * /proc contains more than just processes.
+             * We only want numeric directories (Process Directories)
+             */
+            if (isIntegral(entPid)) {
+                /*
+                 * First lets check if this process was defined
+                 * in the parsed process array arg
+                 */
+                for (PListArray::iterator it = processes.begin(); it != processes.end(); ++it) {
+                    if (it->first == entPid) {
+                        PListValue val = it->second;
+
+                        entUid = val.first;
+                        entType = val.second;
+                        entIsListed = true;
+
+                        break;
+                    }
+                }
+
+                /*
+                 * Otherwise sort Android from Linux process
+                 * by checking the /proc/<pid>/cgroup file,
+                 * if FLAG_SORT has been defined.
+                 *
+                 * This is mostly used as failsafe on Lollipop and above
+                 * where we no longer has access to running applications listing,
+                 * unless we are added as priv-app on /system.
+                 */
+                if (!entIsListed && (flags & FLAG_SORT) != 0) {
+                    entFile = "/proc/";
+                    entFile += entPid;
+                    entFile += "/cgroup";
+
+                    procStream.open(entFile.c_str());
+
+                    if (procStream.good()) {
+                        sortBegin = string::npos;
+
+                        /*
+                         * In prev Android version /proc/<pid>/cgroup contained the following:
+                         *
+                         *      2:cpu:<data>
+                         *      1:cpuacct:<data>
+                         *
+                         * However, Android 6.0 added a new line at the beginning of this file,
+                         * changing the one we want from the second line to the third line.
+                         * This means that we can no longer just skip the first line, we now have to
+                         * check each line to make sure that we get the correct one.
+                         *
+                         *      4:cpu:<data>
+                         *      2:memory:<data>
+                         *      1:cpuacct:<data>
+                         */
+                        if (DEBUG) {
+                            mLogStream << "\nSorting Process";
+                            mLogStream << "\n\t\tPID = ";
+                            mLogStream << entPid;
+                        }
+
+                        while (getline(procStream, procData)) {
+                            sortBegin = procData.find("uid");
+
+                            if (sortBegin != string::npos) {
+                                sortBegin += 4;
+
+                                break;
+                            }
+                        }
+
+                        if (sortBegin != string::npos) {
+                            /*
+                             * Before multi-user support, the line looked like
+                             *
+                             *      1:cpuacct:/uid/xxxxx
+                             *
+                             * Then multi-user came and the line was changed to
+                             *
+                             *      1:cpuacct:/uid_xxxxx/pid_yyyyy
+                             *
+                             * We want xxxxx
+                             */
+                            size_t sortEnd = procData.find_first_of("/", sortBegin);
+
+                            if (sortEnd != string::npos) {
+                                sortEnd -= sortBegin;
+                            }
+
+                            entUid = procData.substr(sortBegin, sortEnd);
+                            entType = "1";
+                            entIsListed = true;
+
+                        } else if (DEBUG) {
+                            procData = "Empty";
+                        }
+
+                        if (DEBUG) {
+                            mLogStream << "\n\t\tCGroup Line = ";
+                            mLogStream << procData;
+                            mLogStream << "\n\t\tIs Android = ";
+                            mLogStream << (entIsListed ? "TRUE" : "FALSE");
+                        }
+                    }
+
+                    procStream.close();
+                    procStream.clear();
+                }
+
+                /*
+                 * Now we collect the info for the process
+                 */
+                if (entIsListed || (flags & FLAG_ALL) != 0) {
+                    entFile = "/proc/";
+                    entFile += entPid;
+                    entFile += "/stat";
+
+                    procStream.open(entFile.c_str());
+
+                    if (procStream.good()) {
+                        getline(procStream, procData);
+
+                        entBuffer = "";
+                        entBuffer += entType;
+                        entBuffer += " ";
+                        entBuffer += entUid;
+                        entBuffer += " ";
+                        entBuffer += cpuStat.first;
+                        entBuffer += " ";
+                        entBuffer += cpuStat.second;
+                        entBuffer += " ";
+                        entBuffer += procData;
+
+                        if (DEBUG) {
+                            mLogStream << "\nAdding Process";
+                            mLogStream << "\n\t\tPID = ";
+                            mLogStream << entPid;
+                            mLogStream << "\n\t\tStat Line = ";
+                            mLogStream << (entBuffer.length() > 100 ? entBuffer.substr(0, 100) + " ..." : entBuffer);
+                        }
+
+                        addData(env, ret, entBuffer);
+
+                        listCount++;
+                    }
+
+                    procStream.close();
+                    procStream.clear();
+                }
+            }
+
+            scanCount++;
+        }
+
+    } while(((flags & FLAG_ALL) != 0 || (flags & FLAG_SORT) != 0 || processes.size() > 0) && procDir != NULL && (procEntry = readdir(procDir)) != NULL);
+
+    /*
+     * Close proc dir
+     */
+    closedir(procDir);
+
+
+    /*
+     * Return collected data
+     */
+
+    if (DEBUG) {
+        mLogStream << "\nProcess scan Ended";
+        mLogStream << "\n\t\tProcesses collected = ";
+        mLogStream << listCount;
+        mLogStream << "\n\t\tProcesses scanned = ";
+        mLogStream << scanCount;
+        mLogStream << "\n---------------------------------------------";
+        mLogStream << "\n=============================================";
+
+        flushLog();
+    }
+
+    return ret;
+}
