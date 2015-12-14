@@ -36,7 +36,11 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.spazedog.lib.rootfw4.RootFW;
+
 public class Common {
+
+    private static int mHasRoot = 0;
 	
 	public static class LOG {
 		public static final int DEBUG = Log.DEBUG;
@@ -138,15 +142,35 @@ public class Common {
 	}
 	
 	public static boolean hasRoot() {
-		String[] locations = new String[]{"/system/xbin/su", "/system/bin/su"};
+        if (mHasRoot == 0) {
+            mHasRoot = -1;
+
+            String[] locations = new String[]{"/system/xbin/su", "/system/bin/su"};
+
+            for (String path : locations) {
+                if (new File(path).exists()) {
+                    mHasRoot = 1; break;
+                }
+            }
+
+            if (mHasRoot != 1 && RootFW.connect(false)) {
+                String pathEnv = RootFW.getEnv("PATH");
+
+                if (pathEnv != null) {
+                    locations = pathEnv.split(":");
+
+                    for (String path : locations) {
+                        if (new File(path + "/su").exists()) {
+                            mHasRoot = 1; break;
+                        }
+                    }
+                }
+
+                RootFW.disconnect();
+            }
+        }
 		
-		for (String path : locations) {
-			if (new File(path).exists()) {
-				return true;
-			}
-		}
-		
-		return false;
+		return mHasRoot == 1;
 	}
 	
 	@SuppressLint("DefaultLocale")
